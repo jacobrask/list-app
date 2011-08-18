@@ -6,28 +6,53 @@
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
-  position: relative; }
+  position: relative;
+  list-style: none; }
 
 html {
   width: 320px;
-  margin: 0 auto;
-  background: #0ff; }
+  margin: 0 auto; }
 
 body {
-  background: #000;
-  padding: 1%;
+  background: #333;
+  color: #999;
+  padding: 10px 1%;
   font: 12px/1 sans-serif; }
 
+h1 {
+  font-size: 24px; }
+  h1.unchanged {
+    font-style: italic; }
+
 fieldset {
-  background: red; }
+  background: blue;
+  background-image: -webkit-linear-gradient(top, #eeeeee, #cccccc);
+  background-image: -moz-linear-gradient(top, #eeeeee, #cccccc);
+  background-image: -o-linear-gradient(top, #eeeeee, #cccccc);
+  border-radius: 5px;
+  margin: 10px 0;
+  padding: 5px 2%;
+  font: bold 14px "Delius", cursive; }
 
 input {
-  background: blue;
-  color: #fff;
-  float: left;
-  padding: 5px 2px; }
+  background: transparent;
+  float: left; }
+  input[type=checkbox] {
+    width: 5%;
+    margin-top: 7px;
+    vertical-align: middle; }
+  input[type=number], input[type=text] {
+    padding: 5px 2%;
+    border-radius: 5px; }
+    input[type=number]:focus, input[type=text]:focus {
+      box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.3);
+      background: rgba(255, 255, 255, 0.4);
+      outline: 0; }
   input[type=number] {
     width: 14%;
-    margin: 0 1% 0 0; }
+    margin: 0 2% 0 0; }
   input[type=text] {
-    width: 85%; }
+    width: 79%; }
+  :checked ~ input {
+    opacity: .3;
+    text-decoration: line-through; }
