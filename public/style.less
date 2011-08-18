@@ -60,8 +60,8 @@ input {
     &[type=text] {
         width: 79%;
     }
-    :checked ~ & {
-        opacity: .3;
-        text-decoration: line-through;
-    }
+}
+:checked ~ input {
+    opacity: .3;
+    text-decoration: line-through;
 }

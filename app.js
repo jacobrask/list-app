@@ -16,9 +16,9 @@ app.configure(function() {
     app.use(express.bodyParser());
     app.use(express.methodOverride());
     app.use(express.static(pub));
-    app.use(express.compiler({ src: pub, enable: ['sass'] }))
     app.use(app.router);
 });
+
 
 app.configure('development', function() {
     app.use(express.errorHandler({ dumpExceptions: true, showStack: true })); 
