@@ -4,19 +4,20 @@
  */
 
 var express = require('express');
+var ejs = require('ejs');
+
 var app = module.exports = express.createServer();
-var pub = __dirname + '/public';
 
 // Configuration
+var pub = __dirname + '/public';
 
 app.configure(function() {
-    app.set('views', __dirname + '/views');
-    app.set('view engine', 'jade');
+    app.set('view engine', 'ejs');
     app.use(express.bodyParser());
     app.use(express.methodOverride());
-    app.use(app.router);
     app.use(express.static(pub));
     app.use(express.compiler({ src: pub, enable: ['sass'] }))
+    app.use(app.router);
 });
 
 app.configure('development', function() {
