@@ -4,8 +4,8 @@
  */
 
 var express = require('express');
-
 var app = module.exports = express.createServer();
+var pub = __dirname + '/public';
 
 // Configuration
 
@@ -15,7 +15,8 @@ app.configure(function() {
     app.use(express.bodyParser());
     app.use(express.methodOverride());
     app.use(app.router);
-    app.use(express.static(__dirname + '/public'));
+    app.use(express.static(pub));
+    app.use(express.compiler({ src: pub, enable: ['sass'] }))
 });
 
 app.configure('development', function() {
