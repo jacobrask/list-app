@@ -1,0 +1,58 @@
+* {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font: inherit;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  position: relative;
+  list-style: none; }
+
+html {
+  width: 320px;
+  margin: 0 auto; }
+
+body {
+  background: #333;
+  color: #999;
+  padding: 10px 1%;
+  font: 12px/1 sans-serif; }
+
+h1 {
+  font-size: 24px; }
+  h1.unchanged {
+    font-style: italic; }
+
+fieldset {
+  background-image: -webkit-gradient(linear, left top, left bottom, from(#eeeeee), to(#cccccc));
+  background-image: -webkit-linear-gradient(top, #eeeeee, #cccccc);
+  background-image: -moz-linear-gradient(top, #eeeeee, #cccccc);
+  background-image: -o-linear-gradient(top, #eeeeee, #cccccc);
+  border-radius: 5px;
+  margin: 10px 0;
+  padding: 5px 2%;
+  font: bold 14px "Delius", cursive; }
+
+input {
+  background: transparent;
+  float: left; }
+  input[type=checkbox] {
+    width: 5%;
+    margin-top: 7px;
+    vertical-align: middle; }
+  input[type=number], input[type=text] {
+    padding: 5px 2%;
+    border-radius: 5px; }
+    input[type=number]:focus, input[type=text]:focus {
+      box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.3);
+      background: rgba(255, 255, 255, 0.4);
+      outline: 0; }
+  input[type=number] {
+    width: 14%;
+    margin: 0 2% 0 0; }
+  input[type=text] {
+    width: 79%; }
+  :checked ~ input {
+    opacity: .3;
+    text-decoration: line-through; }
