@@ -1,21 +1,15 @@
-
-/**
- * Module dependencies.
- */
-
+// Module dependencies.
 var express = require('express');
 var ejs = require('ejs');
 
 var app = module.exports = express.createServer();
 
 // Configuration
-var pub = __dirname + '/public';
-
 app.configure(function() {
     app.set('view engine', 'ejs');
     app.use(express.bodyParser());
     app.use(express.methodOverride());
-    app.use(express.static(pub));
+    app.use(express.static(__dirname + '/public'));
     app.use(app.router);
 });
 
@@ -32,7 +26,7 @@ app.configure('production', function() {
 
 app.get('/', function(req, res) {
     res.render('index', {
-        title: 'Express'
+        title: '1 List'
     });
 });
 
