@@ -1,6 +1,8 @@
 // Module dependencies.
 var express = require('express');
 var ejs = require('ejs');
+var redis = require("redis");
+var rdb = redis.createClient();
 
 var app = module.exports = express.createServer();
 
@@ -13,13 +15,15 @@ app.configure(function() {
     app.use(app.router);
 });
 
-
 app.configure('development', function() {
     app.use(express.errorHandler({ dumpExceptions: true, showStack: true })); 
 });
 
 app.configure('production', function() {
     app.use(express.errorHandler()); 
+});
+rdb.on("error", function (err) {
+    console.log("Redis connection error to " + rdb.host + ":" + rdb.port + " - " + err);
 });
 
 // Routes
