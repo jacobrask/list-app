@@ -57,48 +57,22 @@
     untitled
 </h1>
 <ul class="list">
+<% for(var i = 0; i < list.length; i++) { %>
     <li>
         <fieldset>
             <input
-                id="li-1-checkbox"
+                id="li-<%= i %>-checkbox"
                 type="checkbox">
-            <label for="li-1-checkbox"></label>
+            <label for="li-<%= i %>-checkbox"></label>
             <input
                 type="number"
-                value="12">
+                value="<%= list[i]["num"] %>">
             <input
                 type="text"
-                value="Eggs">
+                value="<%= list[i]["text"] %>">
         </fieldset>
     </li>
-    <li>
-        <fieldset>
-            <input
-                id="li-2-checkbox"
-                type="checkbox"
-                checked>
-            <label for="li-2-checkbox"></label>
-            <input
-                type="number"
-                value="1">
-            <input
-                type="text"
-                value="Milk">
-        </fieldset>
-    </li>
-    <li>
-        <fieldset class="new">
-            <input
-                id="li-3-checkbox"
-                type="checkbox">
-            <label for="li-3-checkbox"></label>
-            <input
-                type="number"
-                value="1">
-            <input
-                type="text">
-        </fieldset>
-    </li>
+<% } %>
 </ul>
 <ul class="actions">
     <li>
