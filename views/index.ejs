@@ -1,13 +1,68 @@
+<form
+    id="delete">
+    <fieldset>
+        <legend>
+            Delete this list
+        </legend>
+        <p>Really delete this list? This cannot be undone.</p>
+    </fieldset>
+    <fieldset>
+        <button
+            type="submit">
+            Delete
+        </button>
+        <button
+            type="reset">
+            Cancel
+        </button>
+    </fieldset>
+</form>
+<form
+    id="share">
+    <fieldset>
+        <legend>
+            Share this list
+        </legend>
+        <label
+            for="share-email">
+            E-mail
+        </label>
+        <input
+            type="email"
+            id="share-email"
+            placeholder="john@example.com">
+        <label
+            for="share-tel">
+            SMS
+        </label>
+        <input
+            type="tel"
+            id="share-tel"
+            placeholder="0046704069001">
+    </fieldset>
+    <fieldset>
+        <button
+            type="submit">
+            Share
+        </button>
+        <button
+            type="reset">
+            Cancel
+        </button>
+    </fieldset>
+</form>
 <h1
     class="unchanged"
     contenteditable>
     untitled
 </h1>
-<ul>
+<ul class="list">
     <li>
         <fieldset>
             <input
+                id="li-1-checkbox"
                 type="checkbox">
+            <label for="li-1-checkbox"></label>
             <input
                 type="number"
                 value="12">
@@ -19,10 +74,13 @@
     <li>
         <fieldset>
             <input
+                id="li-2-checkbox"
                 type="checkbox"
                 checked>
+            <label for="li-2-checkbox"></label>
             <input
-                type="number">
+                type="number"
+                value="1">
             <input
                 type="text"
                 value="Milk">
@@ -31,11 +89,24 @@
     <li>
         <fieldset class="new">
             <input
+                id="li-3-checkbox"
                 type="checkbox">
+            <label for="li-3-checkbox"></label>
             <input
-                type="number">
+                type="number"
+                value="1">
             <input
                 type="text">
         </fieldset>
+    </li>
+</ul>
+<ul class="actions">
+    <li>
+        <a
+            href="#share">Share</a>
+    </li>
+     <li>
+        <a
+            href="#delete">Delete</a>
     </li>
 </ul>
