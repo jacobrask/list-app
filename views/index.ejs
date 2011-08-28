@@ -62,7 +62,8 @@
         <fieldset>
             <input
                 id="li-<%= i %>-checkbox"
-                type="checkbox">
+                type="checkbox"
+                <% if(list[i]["status"] == '0') { %>checked<% } %>>
             <label for="li-<%= i %>-checkbox"></label>
             <input
                 type="number"
