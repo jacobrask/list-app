@@ -28,42 +28,38 @@ rdb.on("error", function (err) {
     console.log("Redis connection error to " + rdb.host + ":" + rdb.port + " - " + err);
 });
 
-rdb.del('item:1');
-rdb.del('item:2');
-rdb.del('list:1:items');
-rdb.hset('item:1', 'num', '12', redis.print);
-rdb.hset('item:1', 'text', "Eggs", redis.print);
-rdb.hset('item:1', 'status', '1', redis.print);
-rdb.hset('item:2', 'num', '1', redis.print);
-rdb.hset('item:2', 'text', "Milk", redis.print);
-rdb.hset('item:2', 'status', '0', redis.print);
-rdb.sadd('list:1:items', '1', redis.print);
-rdb.sadd('list:1:items', '2', redis.print);
+// iterate through set
+var iterSet = function(key, action) {
+    rdb.smembers(key, function(err, data) {
+        data.forEach(function(item) {
+            action(item);
+        });
+    });
+};
 
-var list = [];
+// do stuff with hash data
+var mapHash = function(key, action) {
+    rdb.hgetall(key, function(err, data) {
+        action(data);
+    });
+};
 
-rdb.smembers('list:1:items', function(err, data) {
-    if (err) {
-        console.log('Redis error : ' + err);
-    } else {
-        for(var i = 0;i < data.length; i++) {
-            rdb.hgetall('item:' + data[i], function(err, li) {
-                if (err) {
-                    console.log('Redis error : ' + err);
-                } else {
-                    list.push(li);
-                }
-            });
-        }
+iterSet('list:0:items',
+    function(item) {
+        mapHash('item:' + item,
+            function(li) {
+                // build list
+            }
+        );
     }
-});
+);
 
 // Routes
 
 app.get('/', function(req, res) {
     res.render('index', {
         title: '1 List',
-        list: list
+        list: []
     });
 });
 
