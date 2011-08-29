@@ -31,8 +31,14 @@ rdb.on("error", function (err) {
 // iterate through set
 var iterSet = function(key, action) {
     rdb.smembers(key, function(err, data) {
+        var last = false;
+        var count = data.length;
         data.forEach(function(item) {
-            action(item);
+            count--;
+            if (count <= 0) {
+                last = true;
+            }
+            action(item, last);
         });
     });
 };
@@ -44,24 +50,28 @@ var mapHash = function(key, action) {
     });
 };
 
-iterSet('list:0:items',
-    function(item) {
-        mapHash('item:' + item,
-            function(li) {
-                // build list
-            }
-        );
-    }
-);
 
 // Routes
 
-app.get('/', function(req, res) {
-    res.render('index', {
-        title: '1 List',
-        list: []
+var list = [];
+app.get('/:id', function(req, res) {
+    var id = req.params.id;
+    iterSet('list:' + id + ':items', function(item, last) {
+        mapHash('item:' + item, function(li) {
+            // build list
+            list[item] = li;
+        });
+        if (last) {
+            renderPage(list);
+            list = [];
+        }
     });
+    var renderPage = function(data) {
+        res.render('index', {
+            title: '1 List',
+            list: data
+        });
+    }
 });
 
 app.listen(3000);
-console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
