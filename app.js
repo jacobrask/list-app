@@ -32,8 +32,14 @@ rdb.on("error", function (err) {
 // iterate through set
 var db_iterSet = function(key, action) {
     rdb.smembers(key, function(err, data) {
-        data.forEach(function(item) {
-            action(item);
+        var last = false;
+        var count = data.length;
+        data.forEach(function(item, last) {
+            count--;
+            if (count == 0) {
+                last = true;
+            }
+            action(item, last);
         });
     });
 };
@@ -45,19 +51,42 @@ var db_doHash = function(key, action) {
     });
 };
 
+
 io.sockets.on('connection', function (socket) {
+    var addEmptyItem = function(listId) {
+        rdb.incr('item:next', function(err, id) {
+            console.log(id);
+            var newItem = {
+                id: id,
+                state: 1,
+                number: 1,
+                text: '' };
+            rdb.hmset('item:' + newItem.id,
+                      'text', newItem.text,
+                      'number', newItem.number,
+                      'state', newItem.state, redis.print);
+            rdb.sadd('list:' + listId + ':items', id);
+            socket.emit('newItem', newItem);
+        });
+    };
     socket.on('domReady', function(data) {
         var listId = data;
         // send items
-        db_iterSet('list:' + listId + ':items', function(itemId) {
-            db_doHash('item:' + itemId, function(item) {
+        db_iterSet('list:' + listId + ':items', function(itemId, last) {
+            db_doHash('item:' + itemId, function(item) {    
                 item['id'] = itemId;
                 socket.emit('newItem', item);
+                if (last === true && item.text !== '') {
+                    addEmptyItem(listId);
+                }
             });
         });
     });
     socket.on('itemChange', function(data) {
         rdb.hset('item:' + data.id, data.type, data.value, redis.print);
+    });
+    socket.on('requestEmptyItem', function(data) {
+        addEmptyItem(data.listId);
     });
 });
 
