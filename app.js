@@ -30,22 +30,16 @@ rdb.on("error", function (err) {
 });
 
 // iterate through set
-var iterSet = function(key, action) {
+var db_iterSet = function(key, action) {
     rdb.smembers(key, function(err, data) {
-        var last = false;
-        var count = data.length;
         data.forEach(function(item) {
-            count--;
-            if (count <= 0) {
-                last = true;
-            }
-            action(item, last);
+            action(item);
         });
     });
 };
 
 // do stuff with hash data
-var mapHash = function(key, action) {
+var db_doHash = function(key, action) {
     rdb.hgetall(key, function(err, data) {
         action(data);
     });
@@ -54,9 +48,11 @@ var mapHash = function(key, action) {
 io.sockets.on('connection', function (socket) {
     socket.on('domReady', function(data) {
         var listId = data;
-        iterSet('list:' + listId + ':items', function(item, last) {
-            mapHash('item:' + item, function(li) {
-                socket.emit('newItem', { id: item, li: li } );
+        // send items
+        db_iterSet('list:' + listId + ':items', function(itemId) {
+            db_doHash('item:' + itemId, function(item) {
+                item['id'] = itemId;
+                socket.emit('newItem', item);
             });
         });
     });
