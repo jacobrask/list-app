@@ -56,9 +56,12 @@ io.sockets.on('connection', function (socket) {
         var listId = data;
         iterSet('list:' + listId + ':items', function(item, last) {
             mapHash('item:' + item, function(li) {
-                socket.emit('addListItem', li);
+                socket.emit('newItem', { id: item, li: li } );
             });
         });
+    });
+    socket.on('itemChange', function(data) {
+        rdb.hset('item:' + data.id, data.type, data.value, redis.print);
     });
 });
 
