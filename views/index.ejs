@@ -57,23 +57,6 @@
     untitled
 </h1>
 <ul class="list">
-<% for(var i = 0; i < list.length; i++) { %>
-    <li>
-        <fieldset>
-            <input
-                id="li-<%= i %>-checkbox"
-                type="checkbox"
-                <% if(list[i]["status"] == '0') { %>checked<% } %>>
-            <label for="li-<%= i %>-checkbox"></label>
-            <input
-                type="number"
-                value="<%= list[i]["num"] %>">
-            <input
-                type="text"
-                value="<%= list[i]["text"] %>">
-        </fieldset>
-    </li>
-<% } %>
 </ul>
 <ul class="actions">
     <li>

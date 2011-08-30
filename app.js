@@ -1,10 +1,11 @@
 // Module dependencies.
 var express = require('express');
+var app = module.exports = express.createServer();
+var io = require('socket.io').listen(app);
+
 var ejs = require('ejs');
 var redis = require('redis');
 var rdb = redis.createClient();
-
-var app = module.exports = express.createServer();
 
 // Configuration
 app.configure(function() {
@@ -50,28 +51,24 @@ var mapHash = function(key, action) {
     });
 };
 
+io.sockets.on('connection', function (socket) {
+    socket.on('domReady', function(data) {
+        var listId = data;
+        iterSet('list:' + listId + ':items', function(item, last) {
+            mapHash('item:' + item, function(li) {
+                socket.emit('addListItem', li);
+            });
+        });
+    });
+});
+
 
 // Routes
 
-var list = [];
-app.get('/:id', function(req, res) {
-    var id = req.params.id;
-    iterSet('list:' + id + ':items', function(item, last) {
-        mapHash('item:' + item, function(li) {
-            // build list
-            list[item] = li;
-        });
-        if (last) {
-            renderPage(list);
-            list = [];
-        }
+app.get('/', function (req, res) {
+    res.render('index', {
+        title: '1 List'
     });
-    var renderPage = function(data) {
-        res.render('index', {
-            title: '1 List',
-            list: data
-        });
-    }
 });
 
 app.listen(3000);
