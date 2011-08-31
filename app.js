@@ -17,23 +17,27 @@ app.configure(function() {
 });
 
 app.configure('development', function() {
-    app.use(express.errorHandler({ dumpExceptions: true, showStack: true })); 
+    app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
 });
-
 app.configure('production', function() {
     app.use(express.errorHandler()); 
+});
+io.configure(function() {
+    io.set('hearbeats', false);
 });
 
 // Database
 rdb.on("error", function (err) {
-    console.log("Redis connection error to " + rdb.host + ":" + rdb.port + " - " + err);
+    console.log("Redis connection error to " +
+                 rdb.host + ":" + rdb.port + " - " + err);
 });
 
-// iterate through set
+// Iterate through set
 var db_iterSet = function(key, action) {
     rdb.smembers(key, function(err, data) {
-        var last = false;
-        var count = data.length;
+        // remember which item is the last in the list and tell callback
+        var last = false,
+            count = data.length;
         data.forEach(function(item, last) {
             count--;
             if (count == 0) {
@@ -44,49 +48,52 @@ var db_iterSet = function(key, action) {
     });
 };
 
-// do stuff with hash data
+// perform an action on hash data
 var db_doHash = function(key, action) {
     rdb.hgetall(key, function(err, data) {
         action(data);
     });
 };
 
-
 io.sockets.on('connection', function (socket) {
-    var addEmptyItem = function(listId) {
+    var addEmptyItem = function(listId, broadcast) {
         rdb.incr('item:next', function(err, id) {
-            console.log(id);
-            var newItem = {
-                id: id,
-                state: 1,
-                number: 1,
-                text: '' };
-            rdb.hmset('item:' + newItem.id,
-                      'text', newItem.text,
-                      'number', newItem.number,
-                      'state', newItem.state, redis.print);
-            rdb.sadd('list:' + listId + ':items', id);
+            var newItem = { id: id, state: 1, number: 1, text: '' };
+            rdb.hmset('item:' + newItem.id, newItem, redis.print);
+            rdb.sadd('list:' + listId + ':items', id, redis.print);
+            if (broadcast) {
+                socket.broadcast.emit('newItem', newItem);
+                }
             socket.emit('newItem', newItem);
         });
     };
     socket.on('domReady', function(data) {
-        var listId = data;
         // send items
-        db_iterSet('list:' + listId + ':items', function(itemId, last) {
-            db_doHash('item:' + itemId, function(item) {    
-                item['id'] = itemId;
-                socket.emit('newItem', item);
-                if (last === true && item.text !== '') {
-                    addEmptyItem(listId);
-                }
-            });
+        var listId = data,
+            setKey = 'list:' + listId + ':items';
+        rdb.scard(setKey, function(err, count) {
+            if (count > 0) {
+                db_iterSet(setKey, function(itemId, last) {
+                    var itemKey = 'item:' + itemId;
+                    db_doHash(itemKey, function(item) {    
+                        item['id'] = itemId;
+                        socket.emit('newItem', item);
+                        if (last === true && item.text !== '') {
+                            addEmptyItem(listId);
+                        }
+                    });
+                });
+            } else {
+                addEmptyItem(listId);
+            }
         });
     });
     socket.on('itemChange', function(data) {
         rdb.hset('item:' + data.id, data.type, data.value, redis.print);
+        socket.broadcast.emit('updateItem', data);
     });
     socket.on('requestEmptyItem', function(data) {
-        addEmptyItem(data.listId);
+        addEmptyItem(data.listId, true);
     });
 });
 

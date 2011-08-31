@@ -15,7 +15,7 @@ var inputToObject = function(el) {
         // checkbox toggles "state"
         // 1 is open, 0 is done, -1 is removed
         obj['type'] = 'state';
-        if ($(el).attr('checked')) {
+        if ($(el).prop('checked')) {
             obj['value'] = 0;
         } else {
             obj['value'] = 1;
@@ -28,11 +28,12 @@ var addItem = function(item) {
     var liEl    = $('<li/>'),
         fieldEl = $('<fieldset/>');
         checkEl = $('<input type="checkbox">'),
-        numEl   = $('<input type="number">'),
+        numEl   = $('<input type="number" min="1">'),
         textEl  = $('<input type="text">');
+    $(liEl).attr('id', 'item-' + item.id);
     $(checkEl).add(numEl).add(textEl).data('id', item.id);
     if (item.state == 0) {
-        $(checkEl).attr('checked', true);
+        $(checkEl).prop('checked', true);
         $(fieldEl).addClass('checked');
     }
     $(numEl).val(item.number);
@@ -54,7 +55,18 @@ var addItem = function(item) {
     $('.list').append(liEl);
 }
 
+var updateItem = function(data) {
+    var liEl = $('#item-' + data.id);
+    if (data.type === 'state') {
+        var checkbox = $(liEl).children(':checkbox');
+        $(checkbox).prop('checked', !$(checkbox).prop('checked'));
+    } else {
+        $(liEl).find('input[type=' + data.type + ']').val(data.value);
+    }
+};
+
 socket.on('newItem', addItem);
+socket.on('updateItem', updateItem);
 
 });
 })();
