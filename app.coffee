@@ -1,11 +1,32 @@
 @include = ->
+
     redis = @redis
-    rdb = @rdb
+    rdb   = @rdb
 
-    # SERVER SIDE EVENTS
 
-    # iterate through set
-    # use fallback action if there are no elements in set
+    # VIEWS
+    view layout: ->
+        doctype 5
+        html ->
+            head ->
+                meta charset: 'utf-8'
+                title @title
+                meta name: 'viewport', content: 'width=device-width,initial-scale=1.0'
+                link rel: 'stylesheet', href: 'http://fonts.googleapis.com/css?family=Delius'
+                link rel: 'stylesheet', href: '/style.css'
+                script src: '/socket.io/socket.io.js'
+                script src: '/zappa/jquery.js'
+                script src: '/zappa/zappa.js'
+                script src: '/index.js'
+        body ->
+            @body
+
+    view index: ->
+        h1 class: 'unchanged', 'untitled'
+        ul class: 'list'
+
+
+    # SERVER SIDE APP LOGIC
     forEachInSet = (key, action, fallback) ->
         rdb.scard key, (err, count) ->
             if count > 0
@@ -20,7 +41,6 @@
                 fallback key
     def {forEachInSet}
 
-    # do something with hash data
     forEachInHash = (key, action) ->
         rdb.hgetall key, (err, data) ->
             action data
@@ -38,20 +58,18 @@
             io.sockets.emit 'itemInserted', item: item
     def {insertEmptyItem}
 
-    sendItem = (itemId, last) ->
+    def sendItem: (itemId, last) ->
         itemKey = 'item:' + itemId
         forEachInHash itemKey, (item) ->
             item['id'] = itemId
             io.sockets.emit 'renderItem', item: item
             insertEmptyItem @listId if (last and item.text)
-    def {sendItem}
 
-    updateItem = (item) ->
+    def updateItem: (item) ->
         itemKey = 'item:' + item.id
         rdb.hset itemKey, item.type, item.value, ->
             broadcast 'itemUpdated', item: @item
-    def {updateItem}
-        
+    
     at 'domReady': ->
         # send items
         setKey = 'list:' + @listId + ':items'
@@ -63,7 +81,8 @@
     at 'insertEmptyItem': ->
         insertEmptyItem @listId, true
 
-    # CLIENT SIDE
+
+    # CLIENT SIDE APP LOGIC
     client '/index.js': ->
         connect()
         
