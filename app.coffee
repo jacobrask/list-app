@@ -18,15 +18,19 @@ require('zappa') ->
         console.log 'Redis connection error: ' + err
 
 
-    # Iterate through set
-    db_iterSet = (key, action) ->
-        rdb.smembers key, (err, data) ->
-            # remember which item is the last in the list and tell callback
-            last = false
-            count = data.length
-            data.forEach (item, last) ->
-                last = true if --count is 0
-                action item, last
+    # iterate through set
+    db_iterSet = (key, action, fallback) ->
+        rdb.scard key, (err, count) ->
+            if count > 0
+                rdb.smembers key, (err, elements) ->
+                    # remember which element is the last in the set and tell callback
+                    last = false
+                    count = elements.length
+                    elements.forEach (element, last) ->
+                        last = true if --count is 0
+                        action element, last
+            else
+                fallback
     def {db_iterSet}
 
     # do something with hash data
@@ -45,27 +49,18 @@ require('zappa') ->
             io.sockets.emit 'addItem', item: newItem
     def {addEmptyItem}
 
-    at connection: ->
-        emit 'test', msg: 'connected'
-        emit 'test2', msg: 'connected'
-        emit 'test3', msg: 'connected'
+    sendItem = (itemId, last) ->
+        itemKey = 'item:' + itemId
+        db_doHash itemKey, (item) ->
+            item['id'] = itemId
+            io.sockets.emit 'addItem', item: item
+            addEmptyItem @listId if (last and item.text)
+    def {sendItem}
 
     at 'domReady': ->
-        emit 'test', msg: 'domReady'
-        emit 'test2', msg: 'domReady'
-        emit 'test3', msg: 'domReady'
         # send items
         setKey = 'list:' + @listId + ':items'
-        rdb.scard setKey, (err, count) ->
-            if count > 0
-                db_iterSet setKey, (itemId, last) ->
-                    itemKey = 'item:' + itemId
-                    db_doHash itemKey, (item) ->
-                        item[id] = itemId
-                        emit 'addItem', item: item
-                        addEmptyItem @listId if (last and item.text)
-            else
-                addEmptyItem @listId
+        db_iterSet setKey, sendItem, addEmptyItem
 
     at 'updateItem': ->
         rdb.hset 'item:' + @item.id, @item.type, @item.value, ->
