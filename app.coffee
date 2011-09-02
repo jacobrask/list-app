@@ -17,9 +17,11 @@ require('zappa') ->
     rdb.on 'error', (err) ->
         console.log 'Redis connection error: ' + err
 
+    # SERVER SIDE EVENTS
 
     # iterate through set
-    db_iterSet = (key, action, fallback) ->
+    # use fallback action if there are no elements in set
+    forEachInSet = (key, action, fallback) ->
         rdb.scard key, (err, count) ->
             if count > 0
                 rdb.smembers key, (err, elements) ->
@@ -30,44 +32,51 @@ require('zappa') ->
                         last = true if --count is 0
                         action element, last
             else
-                fallback
-    def {db_iterSet}
+                fallback key
+    def {forEachInSet}
 
     # do something with hash data
-    db_doHash = (key, action) ->
+    forEachInHash = (key, action) ->
         rdb.hgetall key, (err, data) ->
             action data
-    def {db_doHash}
+    def {forEachInHash}
 
-    addEmptyItem = (listId, doBroadcast) ->
-        rdb.incr 'item:next', (err, id) ->
-            newItem = { id: id, state: 1, number: 1, text: '' }
-            rdb.hmset 'item:' + newItem.id, newItem, redis.print
-            rdb.sadd 'list:' + listId + ':items', id, redis.print
-            if doBroadcast
-                broadcast 'addItem', item: newItem
-            io.sockets.emit 'addItem', item: newItem
-    def {addEmptyItem}
+    insertEmptyItem = (listId, toAll) ->
+        listKey = 'list:' + listId + 'items'
+        rdb.incr 'item:next', (err, itemId) ->
+            item = { state: 1, number: 1, text: '', id: itemId }
+            itemKey = 'item:' + itemId
+            rdb.hmset itemKey, item, redis.print
+            rdb.sadd listKey, itemId, redis.print
+            if toAll
+                broadcast 'itemInserted', item: item
+            io.sockets.emit 'itemInserted', item: item
+    def {insertEmptyItem}
 
     sendItem = (itemId, last) ->
         itemKey = 'item:' + itemId
-        db_doHash itemKey, (item) ->
+        forEachInHash itemKey, (item) ->
             item['id'] = itemId
-            io.sockets.emit 'addItem', item: item
-            addEmptyItem @listId if (last and item.text)
+            io.sockets.emit 'renderItem', item: item
+            insertEmptyItem @listId if (last and item.text)
     def {sendItem}
 
+    updateItem = (item) ->
+        itemKey = 'item:' + item.id
+        rdb.hset itemKey, item.type, item.value, ->
+            broadcast 'itemUpdated', item: @item
+    def {updateItem}
+        
     at 'domReady': ->
         # send items
         setKey = 'list:' + @listId + ':items'
-        db_iterSet setKey, sendItem, addEmptyItem
+        forEachInSet setKey, sendItem, insertEmptyItem
 
     at 'updateItem': ->
-        rdb.hset 'item:' + @item.id, @item.type, @item.value, ->
-            broadcast 'updateItem', item: @item
+        updateItem @item
 
-    at 'requestEmptyItem': ->
-        addEmptyItem @listId, true
+    at 'insertEmptyItem': ->
+        insertEmptyItem @listId, true
 
     # CLIENT SIDE
     client '/index.js': ->
@@ -75,13 +84,16 @@ require('zappa') ->
         
         listId = 0
 
-        at 'updateItem': ->
+        at 'itemUpdated': ->
             updateItem @item
         
-        at 'addItem': ->
-            addItem @item
-
-        $().ready ->
+        at 'itemInserted': ->
+            renderItem @item
+        
+        at 'renderItem': ->
+            renderItem @item
+ 
+        $ ->
             emit 'domReady', listId: listId
         
         inputToObject = (el) ->
@@ -100,7 +112,7 @@ require('zappa') ->
                     obj['value'] = 1
             obj
  
-        addItem = (item) ->
+        def renderItem: (item) ->
             liEl    = $('<li/>')
             fieldEl = $('<fieldset/>')
             checkEl = $('<input type="checkbox">')
@@ -119,22 +131,18 @@ require('zappa') ->
                 $(this).parents('fieldset').toggleClass('checked')
             $(textEl).change ->
             if $(this).parents('li').is(':last-child')
-                emit 'requestEmptyItem', listId: listId
+                emit 'insertEmptyItem', listId: listId
             $(fieldEl).append(checkEl, numEl, textEl)
             $(liEl).append(fieldEl)
             $('.list').append(liEl)
-
-        def {addItem}
  
-        updateItem = (item) ->
+        def updateItem: (item) ->
             liEl = $('#item-' + item['id'])
             if item.type == 'state'
                 checkbox = $(liEl).children(':checkbox')
                 $(checkbox).prop('checked', !$(checkbox).prop('checked'))
             else
                 $(liEl).find('input[type=' + item.type + ']').val(item.value)
-
-        def {updateItem}
        
     # Routes
     get '/': ->
