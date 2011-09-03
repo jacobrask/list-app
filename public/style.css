@@ -86,7 +86,7 @@ button {
 input {
   text-shadow: 1px 1px rgba(255, 255, 255, 0.75);
   background: rgba(255, 255, 255, 0.75);
-  padding: 5px;
+  padding: 4px;
   border-radius: 3px;
   border: 1px solid rgba(0, 0, 0, 0.4);
   -webkit-box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.2);
@@ -107,7 +107,7 @@ input {
   background-image: linear-gradient(top, transparent, rgba(0, 0, 0, 0.2));
   border-radius: 5px;
   margin: 10px 0;
-  padding: 5px 2% 5px 38px;
+  padding: 5px 2%;
   font: bold 14px "Delius", cursive; }
   .list fieldset.checked {
     opacity: .5;
@@ -120,6 +120,8 @@ input {
 .list input {
   background: transparent;
   float: left; }
+  .list input[type=checkbox] {
+    display: none; }
   .list input[type=number], .list input[type=text] {
     border: 0; }
     .list input[type=number]:focus, .list input[type=text]:focus {
@@ -128,11 +130,26 @@ input {
       background: rgba(255, 255, 255, 0.75);
       outline: 0; }
   .list input[type=number] {
-    width: 24%;
+    width: 20%;
     text-align: center;
     margin: 0 2% 0 0; }
   .list input[type=text] {
-    width: 74%; }
+    width: 66%; }
+.list span {
+  float: left;
+  width: 10%;
+  font-size: 20px;
+  margin: 0 3% 0 0;
+  line-height: 16px;
+  padding: 5px;
+  text-align: center;
+  border-radius: 50px;
+  background: rgba(255, 255, 255, 0.5);
+  color: #888;
+  text-shadow: -1px -1px 0px black, 1px 1px 0px white;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none; }
 
 .actions a {
   background: #ccc;

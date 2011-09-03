@@ -125,6 +125,7 @@
             liEl    = $('<li/>')
             fieldEl = $('<fieldset/>')
             checkEl = $('<input type="checkbox">')
+            checkBoxEl = $('<span>✓</span>')
             numEl   = $('<input type="number" min="1">')
             textEl  = $('<input type="text">')
             $(liEl).attr('id', 'item-' + item['id'])
@@ -141,7 +142,7 @@
             $(textEl).change ->
             if $(this).parents('li').is(':last-child')
                 emit 'insertEmptyItem', listId: listId
-            $(fieldEl).append(checkEl, numEl, textEl)
+            $(fieldEl).append(checkBoxEl, checkEl, numEl, textEl)
             $(liEl).append(fieldEl)
             $('.list').append(liEl)
  
