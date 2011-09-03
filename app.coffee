@@ -27,7 +27,7 @@
 
 
     # SERVER SIDE APP LOGIC
-    forEachInSet = (key, action, fallback) ->
+    forEachInSet = (key, callback, fallback) ->
         rdb.scard key, (err, count) ->
             if count > 0
                 rdb.smembers key, (err, elements) ->
@@ -36,16 +36,17 @@
                     count = elements.length
                     elements.forEach (element, last) ->
                         last = true if --count is 0
-                        action element, last
+                        callback element, last
             else
                 fallback key
     def {forEachInSet}
 
-    forEachInHash = (key, action) ->
+    forEachInHash = (key, callback) ->
         rdb.hgetall key, (err, data) ->
-            action data
+            callback data
     def {forEachInHash}
 
+    # insert an empty item at the end of a list
     insertEmptyItem = (listId, toAll) ->
         listKey = 'list:' + listId + 'items'
         rdb.incr 'item:next', (err, itemId) ->
@@ -58,6 +59,7 @@
             io.sockets.emit 'itemInserted', item: item
     def {insertEmptyItem}
 
+    # get list item and send to client
     def sendItem: (itemId, last) ->
         itemKey = 'item:' + itemId
         forEachInHash itemKey, (item) ->
@@ -65,13 +67,14 @@
             io.sockets.emit 'renderItem', item: item
             insertEmptyItem @listId if (last and item.text)
 
+    # updates a single item property and tells client
     def updateItem: (item) ->
         itemKey = 'item:' + item.id
         rdb.hset itemKey, item.type, item.value, ->
             broadcast 'itemUpdated', item: @item
-    
+
     at 'domReady': ->
-        # send items
+        # send all current items to client
         setKey = 'list:' + @listId + ':items'
         forEachInSet setKey, sendItem, insertEmptyItem
 
@@ -100,15 +103,16 @@
         $ ->
             emit 'domReady', listId: listId
         
+        # convert an input element to an object suitable for sending server side
         inputToObject = (el) ->
             obj =
                 type: $(el).attr('type')
                 value: $(el).val()
                 id: $(el).data('id')
                 listId: listId
-            if $(el).attr('type') == 'checkbox'
+            if $(el).attr('type') is 'checkbox'
                 # checkbox toggles "state"
-                # 1 is open, 0 is done, -1 is removed
+                # 1 is open, 0 is done
                 obj['type'] = 'state'
                 if $(el).prop('checked')
                     obj['value'] = 0
@@ -116,6 +120,7 @@
                     obj['value'] = 1
             obj
  
+        # generate a list item and add all relevant events
         def renderItem: (item) ->
             liEl    = $('<li/>')
             fieldEl = $('<fieldset/>')
@@ -140,9 +145,10 @@
             $(liEl).append(fieldEl)
             $('.list').append(liEl)
  
+        # updates only relevant item field only
         def updateItem: (item) ->
             liEl = $('#item-' + item['id'])
-            if item.type == 'state'
+            if item.type is 'state'
                 checkbox = $(liEl).children(':checkbox')
                 $(checkbox).prop('checked', !$(checkbox).prop('checked'))
             else
