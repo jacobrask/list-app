@@ -9,7 +9,7 @@ require('zappa') ->
         console.log 'Redis connection error: ' + err
     
     get '/': ->
-        @title = '1 list'
+        @title = 'list'
         render 'index'
 
     include 'app'
