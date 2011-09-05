@@ -78,7 +78,7 @@
         forEachInSet setKey, (itemId, last) ->
             sendItem itemId, (item) ->
                 emit 'renderItem', item: item
-
+   
     at 'updateItem': ->
        updateItem @item, (item) ->
             console.log 'item', item, 'updated'
@@ -136,15 +136,35 @@
             $(checkEl).add(numEl).add(textEl).change ->
                 emit 'updateItem', item: inputToObject($(this))
             $(checkEl).change ->
-                $(this).parents('li').toggleClass('checked')
-                $(this).parents('li').fadeOut('fast')
-                $(this).parents('li').promise().done(->
-                    $(this).insertAfter('.list li:last-child')
-                    $(this).fadeIn()
-                )
+                if $(this).prop('checked')
+                    $(this).parents('li').addClass('checked')
+                    $(this).parents('li').fadeOut('fast')
+                    $(this).parents('li').promise().done(->
+                        $(this).appendTo('.list')
+                        $(this).fadeIn()
+                    )
+                else
+                    $(this).parents('li').removeClass('checked')
+                    $(this).parents('li').fadeOut('fast')
+                    $(this).parents('li').promise().done(->
+                        $(this).prependTo('.list')
+                        $(this).fadeIn()
+                    )
 
             $(textEl).change ->
-            if $(this).parents('li').is(':last-child')
-                emit 'insertEmptyItem', listId: listId
+                if $(this).parents('li').is(':last-child')
+                    emit 'insertEmptyItem', listId: listId
             $(liEl).append(checkEl, checkLabel, numEl, textEl)
-            $('.list').append(liEl)
+            if item.state is '0'
+                if $('.list :checked').length > 0
+                    $('.list :checked').last().parents('li').after($(liEl))
+                else
+                    $(liEl).appendTo('.list')
+            else
+                if $('.list not(:checked)').length > 0
+                    $('.list not(:checked)').last().parents('li').after($(liEl))
+                else
+                    if $('.list :checked').length > 0
+                        $(liEl).prependTo('.list')
+                    else
+                        $(liEl).appendTo('.list')
