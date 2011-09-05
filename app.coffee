@@ -65,6 +65,12 @@
             item['id'] = itemId
             callback item
 
+    # update a single item property
+    def updateItem: (item, callback) ->
+        itemKey = 'item:' + item.id
+        rdb.hset itemKey, item.type, item.value, ->
+            callback item
+
     at 'domReady': ->
         # send all current items to client
         listId = @listId
@@ -72,6 +78,10 @@
         forEachInSet setKey, (itemId, last) ->
             sendItem itemId, (item) ->
                 emit 'renderItem', item: item
+
+    at 'updateItem': ->
+       updateItem @item, (item) ->
+            console.log 'item', item, 'updated'
     
     at 'insertEmptyItem': ->
         insertEmptyItem @listId, true
