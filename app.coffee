@@ -118,26 +118,33 @@
  
         # generate a list item and add all relevant events
         def renderItem: (item) ->
+            itemId = item['id']
             liEl    = $('<li/>')
-            fieldEl = $('<fieldset/>')
             checkEl = $('<input type="checkbox">')
-            checkBoxEl = $('<span>✓</span>')
+            checkLabel = $('<label />')
             numEl   = $('<input type="number" min="1">')
             textEl  = $('<input type="text">')
             $(liEl).attr('id', 'item-' + item['id'])
-            $(checkEl).add(numEl).add(textEl).data('id', item['id'])
-            if item.state is 0
+            $(checkEl).add(numEl).add(textEl).data('id', itemId)
+            $(checkEl).attr('id', 'checkbox-' + itemId)
+            $(checkLabel).attr('for', $(checkEl).attr('id'))
+            if item.state is '0'
                 $(checkEl).prop('checked', true)
-                $(fieldEl).addClass('checked')
+                $(liEl).addClass('checked')
             $(numEl).val(item.number)
             $(textEl).val(item.text)
             $(checkEl).add(numEl).add(textEl).change ->
                 emit 'updateItem', item: inputToObject($(this))
             $(checkEl).change ->
-                $(this).parents('fieldset').toggleClass('checked')
+                $(this).parents('li').toggleClass('checked')
+                $(this).parents('li').fadeOut('fast')
+                $(this).parents('li').promise().done(->
+                    $(this).insertAfter('.list li:last-child')
+                    $(this).fadeIn()
+                )
+
             $(textEl).change ->
             if $(this).parents('li').is(':last-child')
                 emit 'insertEmptyItem', listId: listId
-            $(fieldEl).append(checkBoxEl, checkEl, numEl, textEl)
-            $(liEl).append(fieldEl)
+            $(liEl).append(checkEl, checkLabel, numEl, textEl)
             $('.list').append(liEl)

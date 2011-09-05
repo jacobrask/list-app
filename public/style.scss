@@ -62,12 +62,6 @@ h1 {
         font-size: 15px;
         width: 100%;
     }
-    label {
-        float: left;
-        clear: left;
-        padding: 5px 0 2px;
-        font-weight: bold;
-    }
     input {
         width: 100%;
         float: right;
@@ -109,23 +103,36 @@ input {
     }
 }
 .list {
-    fieldset {
+    li {
         background-color: #ddd;
         @include gradient-shadow;
         border-radius: 5px;
         margin: 10px 0;
         padding: 5px 2%;
         font: bold 14px "Delius", cursive;
+        overflow: hidden;
         &.checked {
             opacity: .5;
-            text-decoration: line-through;
+            & input {
+                text-decoration: line-through;
+            }   
+            & label {
+                background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAQAgMAAABrdreIAAAAAXNSR0IArs4c6QAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9sJBQoqOioTREMAAAAdaVRYdENvbW1lbnQAAAAAAENyZWF0ZWQgd2l0aCBHSU1QZC5lBwAAAAlQTFRFAAAAAAAA////g93P0gAAAAF0Uk5TAEDm2GYAAAABYktHRAJmC3xkAAAANklEQVQIHQXBMQEAMAgDsHAgYX6QwEH9W1kCBmqhD14gp1RWT2e8fSGX4yVLJ0MlkIO30AOFD8iWCaLEQkS1AAAAAElFTkSuQmCC);
+            }
         }
     }
     label {
         display: block;
-        height: 0;
-        text-indent: -9999px;
         cursor: pointer;
+        float: left;
+        width: 9%;
+        margin: 0 2% 0 0;
+        height: 24px;
+        border-radius: 3px;
+        box-shadow: inset 1px 1px 3px rgba(0, 0, 0, .2);
+        background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAQAgMAAABrdreIAAAAAXNSR0IArs4c6QAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9sJBQsrOavDTo8AAAAdaVRYdENvbW1lbnQAAAAAAENyZWF0ZWQgd2l0aCBHSU1QZC5lBwAAAAlQTFRFAAAAqqqq////IxuDDAAAAAF0Uk5TAEDm2GYAAAABYktHRAJmC3xkAAAANklEQVQIHQXBMQEAMAgDsHAgYX6QwEH9W1kCBmqhD14gp1RWT2e8fSGX4yVLJ0MlkIO30AOFD8iWCaLEQkS1AAAAAElFTkSuQmCC);
+        background-repeat: no-repeat;
+        background-position: 50%;
     }
     input {
         background: transparent;
@@ -151,23 +158,6 @@ input {
         &[type=text] {
             width: 66%;
         }
-    }
-    span {
-        float: left;
-        width: 10%;
-        font-size: 20px;
-        margin: 0 3% 0 0;
-        line-height: 16px;
-        padding: 5px;
-        text-align: center;
-        border-radius: 50px;
-        background: rgba(255, 255, 255, .50);
-        color: #888;
-        text-shadow: -1px -1px 0px #000,
-                      1px 1px 0px #fff;
-        cursor: pointer;
-        -webkit-user-select: none;
-        user-select: none;
     }
 }
 .actions {
