@@ -1,8 +1,9 @@
 @include = ->
 
+    rdb = @rdb
     redis = @redis
-    rdb   = @rdb
-
+    def { rdb }
+    def { redis }
 
     # VIEWS
     view layout: ->
@@ -22,68 +23,72 @@
             @body
 
     view index: ->
-        h1 class: 'unchanged', 'untitled'
+        h1 'untitled'
         ul class: 'list'
 
 
     # SERVER SIDE APP LOGIC
-    forEachInSet = (key, callback, fallback) ->
+    def forEachInSet: (key, callback, fallback) ->
         rdb.scard key, (err, count) ->
             if count > 0
                 rdb.smembers key, (err, elements) ->
                     # remember which element is the last in the set and tell callback
                     last = false
-                    count = elements.length
-                    elements.forEach (element, last) ->
-                        last = true if --count is 0
-                        callback element, last
+                    elCount = elements.length
+                    elements.forEach (itemId, last) ->
+                        last = true if --elCount is 0
+                        callback itemId, last
             else
-                fallback key
-    def {forEachInSet}
+                fallback 0
 
     forEachInHash = (key, callback) ->
         rdb.hgetall key, (err, data) ->
             callback data
     def {forEachInHash}
-
+    
+    ###
     # insert an empty item at the end of a list
-    insertEmptyItem = (listId, toAll) ->
+    insertEmptyItem = (listId) ->
         listKey = 'list:' + listId + 'items'
         rdb.incr 'item:next', (err, itemId) ->
             item = { state: 1, number: 1, text: '', id: itemId }
             itemKey = 'item:' + itemId
             rdb.hmset itemKey, item, redis.print
             rdb.sadd listKey, itemId, redis.print
-            if toAll
-                broadcast 'itemInserted', item: item
-            io.sockets.emit 'itemInserted', item: item
+            # broadcast:
+            # io.sockets.emit 'itemInserted', item: item
     def {insertEmptyItem}
+    ###
 
     # get list item and send to client
-    def sendItem: (itemId, last) ->
+    def sendItem: (itemId, callback) ->
         itemKey = 'item:' + itemId
         forEachInHash itemKey, (item) ->
             item['id'] = itemId
-            io.sockets.emit 'renderItem', item: item
-            insertEmptyItem @listId if (last and item.text)
+            callback item
 
-    # updates a single item property and tells client
-    def updateItem: (item) ->
+    # update a single item property and tell clients
+    def updateItem: (item, callback) ->
         itemKey = 'item:' + item.id
         rdb.hset itemKey, item.type, item.value, ->
-            broadcast 'itemUpdated', item: @item
+            callback item
 
     at 'domReady': ->
         # send all current items to client
-        setKey = 'list:' + @listId + ':items'
-        forEachInSet setKey, sendItem, insertEmptyItem
-
+        listId = @listId
+        setKey = 'list:' + listId + ':items'
+        forEachInSet setKey, (itemId, last) ->
+            sendItem itemId, (item) ->
+                emit 'renderItem', item: item
+    
     at 'updateItem': ->
-        updateItem @item
+        updateItem @item, (item) ->
+            broadcast 'itemUpdated', item: item
 
+    ###
     at 'insertEmptyItem': ->
         insertEmptyItem @listId, true
-
+    ###
 
     # CLIENT SIDE APP LOGIC
     client '/index.js': ->
@@ -146,7 +151,7 @@
             $(liEl).append(fieldEl)
             $('.list').append(liEl)
  
-        # updates only relevant item field only
+        # updates relevant item field only
         def updateItem: (item) ->
             liEl = $('#item-' + item['id'])
             if item.type is 'state'
