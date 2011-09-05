@@ -46,7 +46,6 @@
             callback data
     def {forEachInHash}
     
-    ###
     # insert an empty item at the end of a list
     insertEmptyItem = (listId) ->
         listKey = 'list:' + listId + 'items'
@@ -58,19 +57,12 @@
             # broadcast:
             # io.sockets.emit 'itemInserted', item: item
     def {insertEmptyItem}
-    ###
 
     # get list item and send to client
     def sendItem: (itemId, callback) ->
         itemKey = 'item:' + itemId
         forEachInHash itemKey, (item) ->
             item['id'] = itemId
-            callback item
-
-    # update a single item property and tell clients
-    def updateItem: (item, callback) ->
-        itemKey = 'item:' + item.id
-        rdb.hset itemKey, item.type, item.value, ->
             callback item
 
     at 'domReady': ->
@@ -81,14 +73,9 @@
             sendItem itemId, (item) ->
                 emit 'renderItem', item: item
     
-    at 'updateItem': ->
-        updateItem @item, (item) ->
-            broadcast 'itemUpdated', item: item
-
-    ###
     at 'insertEmptyItem': ->
         insertEmptyItem @listId, true
-    ###
+
 
     # CLIENT SIDE APP LOGIC
     client '/index.js': ->
@@ -96,12 +83,6 @@
         
         listId = 0
 
-        at 'itemUpdated': ->
-            updateItem @item
-        
-        at 'itemInserted': ->
-            renderItem @item
-        
         at 'renderItem': ->
             renderItem @item
  
@@ -150,12 +131,3 @@
             $(fieldEl).append(checkBoxEl, checkEl, numEl, textEl)
             $(liEl).append(fieldEl)
             $('.list').append(liEl)
- 
-        # updates relevant item field only
-        def updateItem: (item) ->
-            liEl = $('#item-' + item['id'])
-            if item.type is 'state'
-                checkbox = $(liEl).children(':checkbox')
-                $(checkbox).prop('checked', !$(checkbox).prop('checked'))
-            else
-                $(liEl).find('input[type=' + item.type + ']').val(item.value)
