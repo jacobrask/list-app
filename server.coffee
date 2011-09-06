@@ -1,6 +1,6 @@
 require('zappa') ->
     enable 'serve jquery'
-    
+ 
     use 'static'
 
     @redis = require 'redis'
@@ -12,4 +12,5 @@ require('zappa') ->
         @title = 'list'
         render 'index'
 
+    include 'common'
     include 'app'

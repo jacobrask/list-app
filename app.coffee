@@ -5,6 +5,7 @@
     def { rdb }
     def { redis }
 
+
     # VIEWS
     view layout: ->
         doctype 5
@@ -27,25 +28,23 @@
         ul class: 'list'
 
 
+
     # SERVER SIDE APP LOGIC
-    def forEachInSet: (key, callback, fallback) ->
-        rdb.scard key, (err, count) ->
-            if count > 0
+    db_forEach = (key, callback) ->
+        rdb.type key, (err, type) ->
+            if type is 'set'
                 rdb.smembers key, (err, elements) ->
                     # remember which element is the last in the set and tell callback
                     last = false
-                    elCount = elements.length
-                    elements.forEach (itemId, last) ->
-                        last = true if --elCount is 0
+                    count = elements.length
+                    forEach elements, (itemId, last) ->
+                        last = true if --count is 0
                         callback itemId, last
-            else
-                fallback 0
+            else if type is 'hash'
+                rdb.hgetall key, (err, data) ->
+                    callback data
+    def {db_forEach}
 
-    forEachInHash = (key, callback) ->
-        rdb.hgetall key, (err, data) ->
-            callback data
-    def {forEachInHash}
-    
     # insert an empty item at the end of a list
     insertEmptyItem = (listId) ->
         listKey = 'list:' + listId + 'items'
@@ -61,7 +60,7 @@
     # get list item and send to client
     def sendItem: (itemId, callback) ->
         itemKey = 'item:' + itemId
-        forEachInHash itemKey, (item) ->
+        db_forEach itemKey, (item) ->
             item['id'] = itemId
             callback item
 
@@ -75,7 +74,7 @@
         # send all current items to client
         listId = @listId
         setKey = 'list:' + listId + ':items'
-        forEachInSet setKey, (itemId, last) ->
+        db_forEach setKey, (itemId, last) ->
             sendItem itemId, (item) ->
                 emit 'renderItem', item: item
    
