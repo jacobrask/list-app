@@ -4,6 +4,8 @@
     rdb = redis.createClient()
     rdb.on 'error', (err) ->
         console.log 'Redis connection error: ' + err
+    
+    _ = @_
 
     # iterate through something in the database
     @db_forEach = (key, callback, fallback) ->
@@ -21,7 +23,7 @@
                         if err
                             return callback err
                         # remember which element is the last in the set and tell callback
-                        forEach elements, (itemId) ->
+                        _.forEach elements, (itemId) ->
                             callback null, itemId
                 else if type is 'hash'
                     rdb.hgetall key, (err, data) ->
