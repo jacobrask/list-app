@@ -1,9 +1,12 @@
 @include = ->
-
-    rdb = @rdb
-    redis = @redis
-    def { rdb }
-    def { redis }
+    
+    include 'db'
+    db_forEach = @db_forEach
+    def { db_forEach }
+    db_setHashField = @db_setHashField
+    def { db_setHashField }
+    db_insertEmptyItem = @db_insertEmptyItem
+    def { db_insertEmptyItem }
 
 
     # VIEWS
@@ -28,62 +31,36 @@
         ul class: 'list'
 
 
-
-    # SERVER SIDE APP LOGIC
-    db_forEach = (key, callback) ->
-        rdb.type key, (err, type) ->
-            if type is 'set'
-                rdb.smembers key, (err, elements) ->
-                    # remember which element is the last in the set and tell callback
-                    last = false
-                    count = elements.length
-                    forEach elements, (itemId, last) ->
-                        last = true if --count is 0
-                        callback itemId, last
-            else if type is 'hash'
-                rdb.hgetall key, (err, data) ->
-                    callback data
-    def {db_forEach}
-
-    # insert an empty item at the end of a list
-    insertEmptyItem = (listId) ->
-        listKey = 'list:' + listId + 'items'
-        rdb.incr 'item:next', (err, itemId) ->
-            item = { state: 1, number: 1, text: '', id: itemId }
-            itemKey = 'item:' + itemId
-            rdb.hmset itemKey, item, redis.print
-            rdb.sadd listKey, itemId, redis.print
-            # broadcast:
-            # io.sockets.emit 'itemInserted', item: item
-    def {insertEmptyItem}
-
     # get list item and send to client
     def sendItem: (itemId, callback) ->
         itemKey = 'item:' + itemId
-        db_forEach itemKey, (item) ->
+        db_forEach itemKey, (err, item) ->
+            throw err if err
             item['id'] = itemId
-            callback item
-
-    # update a single item property
-    def updateItem: (item, callback) ->
-        itemKey = 'item:' + item.id
-        rdb.hset itemKey, item.type, item.value, ->
             callback item
 
     at 'domReady': ->
         # send all current items to client
         listId = @listId
         setKey = 'list:' + listId + ':items'
-        db_forEach setKey, (itemId, last) ->
-            sendItem itemId, (item) ->
-                emit 'renderItem', item: item
+        db_forEach setKey,
+            (err, itemId) ->
+                throw err if err
+                sendItem itemId, (item) ->
+                    emit 'renderItem', item: item
+            (err, key) ->
+                db_insertEmptyItem key, (err, item) ->
+                    throw err if err
+                    sendItem itemId, (item) ->
+                        emit 'renderItem', item: item
    
     at 'updateItem': ->
-       updateItem @item, (item) ->
-            console.log 'item', item, 'updated'
+        db_setHashField 'item:' + @item.id, @item.type, @item.value, (err, item) ->
+            throw err if err
     
     at 'insertEmptyItem': ->
-        insertEmptyItem @listId, true
+        db_insertEmptyItem 'list:' + @listId + ':items', (err, item) ->
+            throw err if err
 
 
     # CLIENT SIDE APP LOGIC
