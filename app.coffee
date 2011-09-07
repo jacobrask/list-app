@@ -90,7 +90,7 @@
                     obj['value'] = 0
                 else
                     obj['value'] = 1
-            obj
+            return obj
  
         # generate a list item and add all relevant events
         def renderItem: (item) ->
@@ -112,35 +112,28 @@
             $(checkEl).add(numEl).add(textEl).change ->
                 emit 'updateItem', item: inputToObject($(this))
             $(checkEl).change ->
-                if $(this).prop('checked')
-                    $(this).parents('li').addClass('checked')
-                    $(this).parents('li').fadeOut('fast')
-                    $(this).parents('li').promise().done(->
+                $(this).parents('li').fadeOut('fast')
+                $(this).parents('li').promise().done(->
+                    if $(this).children('[type=checkbox]').prop('checked')
+                        $(this).addClass('checked')
                         $(this).appendTo('.list')
-                        $(this).fadeIn()
-                    )
-                else
-                    $(this).parents('li').removeClass('checked')
-                    $(this).parents('li').fadeOut('fast')
-                    $(this).parents('li').promise().done(->
+                    else
+                        $(this).removeClass('checked')
                         $(this).prependTo('.list')
-                        $(this).fadeIn()
-                    )
+                    $(this).fadeIn()
+                )
 
-            $(textEl).change ->
-                if $(this).parents('li').is(':last-child')
-                    emit 'insertEmptyItem', listId: listId
             $(liEl).append(checkEl, checkLabel, numEl, textEl)
-            if item.state is '0'
-                if $('.list :checked').length > 0
-                    $('.list :checked').last().parents('li').after($(liEl))
-                else
-                    $(liEl).appendTo('.list')
-            else
+            
+            # if list is empty, or if item is the first checked item, append
+            if $('.list li').length is 0 or (item.state is '0' and $('.list :checked').length is 0)
+                $(liEl).appendTo('.list')
+            # if item is checked, add after last checked item
+            else if item.state is '0'
+                $('.list :checked').last().parents('li').after($(liEl))
+            # if item is unchecked, add after last unchecked item or first in list
+            else if item.state is '1'
                 if $('.list not(:checked)').length > 0
                     $('.list not(:checked)').last().parents('li').after($(liEl))
                 else
-                    if $('.list :checked').length > 0
-                        $(liEl).prependTo('.list')
-                    else
-                        $(liEl).appendTo('.list')
+                    $(liEl).prependTo('.list')
