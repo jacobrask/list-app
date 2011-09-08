@@ -46,11 +46,12 @@
             callback null, key
 
     # increment a counter and return new value
-    db_nextId = (key, callback) ->
+    @db_nextId = (key, callback) ->
         rdb.incr key, (err, id) ->
             if err
                 callback err
             callback null, id
+    db_nextId = @db_nextId
 
     # insert an empty item at the end of a list
     @db_insertEmptyItem = (key, callback) ->
@@ -62,4 +63,4 @@
             itemKey = 'item:' + itemId
             rdb.hmset itemKey, item, ->
                 rdb.sadd listKey, itemId, ->
-                    callback null, item
+                    callback null, itemId

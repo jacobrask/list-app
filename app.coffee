@@ -7,7 +7,23 @@
     def { db_setHashField }
     db_insertEmptyItem = @db_insertEmptyItem
     def { db_insertEmptyItem }
+    db_nextId = @db_nextId
+    def { db_nextId }
 
+    list = []
+    def { list }
+
+    # requested a list ID directly
+    get /^\/(\d+)/, ->
+        list['id'] = params[0]
+        @title = 'list ' + list['id']
+        render 'index'
+   
+    # redirect to next available list id url
+    get '/': ->
+        db_nextId 'list:next', (err, nextListId) ->
+            throw err if err
+            redirect '/' + nextListId
 
     # VIEWS
     view layout: ->
@@ -22,12 +38,12 @@
                 script src: '/socket.io/socket.io.js'
                 script src: '/zappa/jquery.js'
                 script src: '/zappa/zappa.js'
-                script src: '/index.js'
+                script src: '/script.js'
         body ->
             @body
 
     view index: ->
-        h1 'untitled'
+        h1 contenteditable: 'true', 'untitled list'
         ul class: 'list'
 
 
@@ -41,15 +57,14 @@
 
     at 'domReady': ->
         # send all current items to client
-        listId = @listId
-        setKey = 'list:' + listId + ':items'
+        setKey = 'list:' + list['id'] + ':items'
         db_forEach setKey,
             (err, itemId) ->
                 throw err if err
                 sendItem itemId, (item) ->
                     emit 'renderItem', item: item
             (err, key) ->
-                db_insertEmptyItem key, (err, item) ->
+                db_insertEmptyItem key, (err, itemId) ->
                     throw err if err
                     sendItem itemId, (item) ->
                         emit 'renderItem', item: item
@@ -64,16 +79,15 @@
 
 
     # CLIENT SIDE APP LOGIC
-    client '/index.js': ->
+    client '/script.js': ->
+
         connect()
         
-        listId = 0
-
         at 'renderItem': ->
             renderItem @item
  
         $ ->
-            emit 'domReady', listId: listId
+            emit 'domReady'
         
         # convert an input element to an object suitable for sending server side
         inputToObject = (el) ->
@@ -81,7 +95,6 @@
                 type: $(el).attr('type')
                 value: $(el).val()
                 id: $(el).data('id')
-                listId: listId
             if $(el).attr('type') is 'checkbox'
                 # checkbox toggles "state"
                 # 1 is open, 0 is done
