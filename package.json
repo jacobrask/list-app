@@ -6,7 +6,7 @@
     "dependencies": {
         "zappa": "0.2.0beta",
         "coffee-script": ">=1.1.2",
-        "redis-url": "0.0.1",
+        "redis": ">=0.6.7",
         "underscore": ">=1.1.7"
     },
     "main": "./server"
