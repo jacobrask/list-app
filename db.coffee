@@ -3,12 +3,13 @@
     redis = require 'redis'
     rdb = redis.createClient()
     rdb.on 'error', (err) ->
-        console.log 'Redis connection error: ' + err
+        console.log 'Redis connection error: ', err
     
     _ = @_
-
+    db = {}
+    
     # iterate through something in the database
-    @db_forEach = (key, callback, fallback) ->
+    db.forEach = (key, callback, fallback) ->
         rdb.exists key, (err, exists) ->
             if err
                 return callback err
@@ -39,22 +40,21 @@
                     return callback new Error("Invalid data type at key", key)
                     
     # update a single item property
-    @db_setHashField = (key, field, value, callback) ->
+    db.setHashField = (key, field, value, callback) ->
         rdb.hset key, field, value, (err, data) ->
             if err
                 callback err
             callback null, key
 
     # increment a counter and return new value
-    @db_nextId = (key, callback) ->
+    db.nextId = (key, callback) ->
         rdb.incr key, (err, id) ->
             if err
                 callback err
             callback null, id
-    db_nextId = @db_nextId
 
     # insert an empty item at the end of a list
-    @db_insertEmptyItem = (key, callback) ->
+    db.insertEmptyItem = (key, callback) ->
         listKey = key
         db_nextId 'item:next', (err, itemId) ->
             if err
@@ -64,3 +64,4 @@
             rdb.hmset itemKey, item, ->
                 rdb.sadd listKey, itemId, ->
                     callback null, itemId
+    @db = db

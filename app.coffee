@@ -1,14 +1,8 @@
 @include = ->
     
     include 'db'
-    db_forEach = @db_forEach
-    def { db_forEach }
-    db_setHashField = @db_setHashField
-    def { db_setHashField }
-    db_insertEmptyItem = @db_insertEmptyItem
-    def { db_insertEmptyItem }
-    db_nextId = @db_nextId
-    def { db_nextId }
+    db = @db
+    def { db }
 
     list = []
     def { list }
@@ -21,7 +15,7 @@
    
     # redirect to next available list id url
     get '/': ->
-        db_nextId 'list:next', (err, nextListId) ->
+        db.nextId 'list:next', (err, nextListId) ->
             throw err if err
             redirect '/' + nextListId
 
@@ -50,7 +44,7 @@
     # get list item and send to client
     def sendItem: (itemId, callback) ->
         itemKey = 'item:' + itemId
-        db_forEach itemKey, (err, item) ->
+        db.forEach itemKey, (err, item) ->
             throw err if err
             item['id'] = itemId
             callback item
@@ -58,23 +52,23 @@
     at 'domReady': ->
         # send all current items to client
         setKey = 'list:' + list['id'] + ':items'
-        db_forEach setKey,
+        db.forEach setKey,
             (err, itemId) ->
                 throw err if err
                 sendItem itemId, (item) ->
                     emit 'renderItem', item: item
             (err, key) ->
-                db_insertEmptyItem key, (err, itemId) ->
+                db.insertEmptyItem key, (err, itemId) ->
                     throw err if err
                     sendItem itemId, (item) ->
                         emit 'renderItem', item: item
    
     at 'updateItem': ->
-        db_setHashField 'item:' + @item.id, @item.type, @item.value, (err, item) ->
+        db.setHashField 'item:' + @item.id, @item.type, @item.value, (err, item) ->
             throw err if err
     
     at 'insertEmptyItem': ->
-        db_insertEmptyItem 'list:' + @listId + ':items', (err, item) ->
+        db.insertEmptyItem 'list:' + @listId + ':items', (err, item) ->
             throw err if err
 
 
