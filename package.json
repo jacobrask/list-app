@@ -1,0 +1,13 @@
+{
+    "name":        "list-app",
+    "version":      "0.0.2",
+    "description": "Test list app in Node.js",
+    "author":      "Jacob Rask <jacob@jacobrask.net>",
+    "dependencies": {
+        "zappa":      "0.2.0beta",
+        "coffee-script": ">=1.1.2",
+        "redis":      ">=0.6.7",
+        "underscore": ">=1.1.7"
+    },
+    "main": "./server"
+}
