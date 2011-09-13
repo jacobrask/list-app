@@ -1,7 +1,6 @@
 @include = ->
 
-    redis = require 'redis'
-    rdb = redis.createClient()
+    rdb = require('redis-url').connect(process.env.REDISTOGO_URL);
     rdb.on 'error', (err) ->
         console.log 'Redis connection error: ', err
     
