@@ -1,4 +1,4 @@
-port = process.env.PORT or 3000
+port = Number(process.env.PORT || 3000)
 require('zappa') port, ->
     enable 'serve jquery'
     use 'static'
