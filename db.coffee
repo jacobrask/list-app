@@ -1,6 +1,7 @@
 @include = ->
 
-    rdb = require('redis-url').connect(process.env.REDISTOGO_URL);
+    redis = require 'redis-url'
+    rdb = connect process.env.REDISTOGO_URL
     rdb.on 'error', (err) ->
         console.log 'Redis connection error: ', err
     
