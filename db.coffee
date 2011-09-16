@@ -11,7 +11,6 @@
     rdb.on 'error', (err) ->
         console.log 'Redis connection error: ', err
     
-    _ = @_
     db = {}
     
     # iterate through something in the database
@@ -42,6 +41,7 @@
                         return callback null, element
                 else
                     return callback new Error("Invalid data type at key", key)
+    
 
     # update a single item property
     db.setHashField = (key, field, value, callback) ->

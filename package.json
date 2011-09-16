@@ -7,7 +7,6 @@
         "zappa": "0.2.0",
         "coffee-script": ">=1.1.2",
         "redis": ">=0.6.7",
-        "underscore": ">=1.1.7"
     },
     "main": "./server"
 }
