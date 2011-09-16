@@ -1,11 +1,12 @@
 @include = ->
 
+    # for RedisToGo / Heroku
     if process.env.REDISTOGO_URL
         rtg = require("url").parse(process.env.REDISTOGO_URL)
         rdb = require("redis").createClient(rtg.port, rtg.hostname)
         rdb.auth(rtg.auth.split(":")[1])
     else
-        rdb = require("redis").createClient();
+        rdb = require("redis").createClient()
 
     rdb.on 'error', (err) ->
         console.log 'Redis connection error: ', err
@@ -28,9 +29,7 @@
                     rdb.smembers key, (err, elements) ->
                         if err
                             return callback err
-                        # remember which element is the last in the set and tell callback
-                        _.forEach elements, (itemId) ->
-                            callback null, itemId
+                        callback null, itemId for itemId in elements
                 else if type is 'hash'
                     rdb.hgetall key, (err, data) ->
                         if err
@@ -43,7 +42,7 @@
                         return callback null, element
                 else
                     return callback new Error("Invalid data type at key", key)
-                    
+
     # update a single item property
     db.setHashField = (key, field, value, callback) ->
         rdb.hset key, field, value, (err, data) ->
@@ -61,7 +60,7 @@
     # insert an empty item at the end of a list
     db.insertEmptyItem = (key, callback) ->
         listKey = key
-        db_nextId 'item:next', (err, itemId) ->
+        db.nextId 'item:next', (err, itemId) ->
             if err
                 callback err
             item = { state: 1, number: 1, text: '', id: itemId }
