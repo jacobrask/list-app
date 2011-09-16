@@ -37,7 +37,7 @@
             @body
 
     view index: ->
-        h1 contenteditable: 'true', 'untitled list'
+        h1 contenteditable: 'true'
         ul class: 'list'
 
 
@@ -51,18 +51,29 @@
 
     at 'domReady': ->
         # send all current items to client
-        setKey = 'list:' + list['id'] + ':items'
-        db.forEach setKey,
+        baseKey = 'list:' + list['id']
+        db.forEach baseKey + ':items',
             (err, itemId) ->
                 throw err if err
                 sendItem itemId, (item) ->
                     emit 'renderItem', item: item
             (err, key) ->
+                throw err if err
                 db.insertEmptyItem key, (err, itemId) ->
                     throw err if err
                     sendItem itemId, (item) ->
                         emit 'renderItem', item: item
-   
+
+        # send list title
+        db.forEach baseKey + ':title',
+            (err, listTitle) ->
+                throw err if err
+                emit 'sendTitle', listTitle: listTitle
+            (err, key) ->
+                throw err if err
+                emit 'sendTitle', listTitle: 'untitled list'
+
+
     at 'updateItem': ->
         db.setHashField 'item:' + @item.id, @item.type, @item.value, (err, item) ->
             throw err if err
@@ -79,7 +90,10 @@
         
         at 'renderItem': ->
             renderItem @item
- 
+        
+        at 'sendTitle': ->
+            setTitle @listTitle
+
         $ ->
             emit 'domReady'
         
@@ -144,3 +158,6 @@
                     $('.list not(:checked)').last().parents('li').after($(liEl))
                 else
                     $(liEl).prependTo('.list')
+
+        def setTitle: (title) ->
+            $('h1').text(title)
