@@ -21,7 +21,6 @@
             if exists is 0
                 return fallback null, key
             rdb.type key, (err, type) ->
-                return callback err if err
                 if type is 'set'
                     rdb.smembers key, (err, elements) ->
                         callback err, itemId for itemId in elements
@@ -32,7 +31,7 @@
                     rdb.get key, (err, element) ->
                         callback err, element
                 else
-                    return callback new Error "Invalid data type at key", key
+                    callback err ? new Error "Invalid data type at key"
 
     # update a single item property
     db.setHashField = (key, field, value, callback) ->
