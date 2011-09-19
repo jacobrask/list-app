@@ -1,6 +1,6 @@
 @include = ->
     
-    include 'db'
+    include 'lib/db'
     db = @db
     def { db }
 

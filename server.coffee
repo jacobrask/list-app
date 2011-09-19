@@ -3,4 +3,4 @@ require('zappa') port, ->
     enable 'serve jquery'
     use 'static'
    
-    include 'app'
+    include 'lib/app'
