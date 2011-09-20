@@ -22,17 +22,18 @@
             if exists is 0
                 return fallback null, key
             rdb.type key, (err, type) ->
-                if type is 'set'
-                    rdb.smembers key, (err, elements) ->
-                        callback err, itemId for itemId in elements
-                else if type is 'hash'
-                    rdb.hgetall key, (err, data) ->
-                        callback err, data
-                else if type is 'string'
-                    rdb.get key, (err, element) ->
-                        callback err, element
-                else
-                    callback err ? new Error "Invalid data type at key"
+                switch type
+                    when 'set'
+                        rdb.smembers key, (err, elements) ->
+                            callback err, itemId for itemId in elements
+                    when 'hash'
+                        rdb.hgetall key, (err, data) ->
+                            callback err, data
+                    when 'string'
+                        rdb.get key, (err, element) ->
+                            callback err, element
+                    else
+                        callback err ? new Error "Invalid data type at key"
 
 
     # update an arbitrary field in database, check for data type
@@ -41,28 +42,33 @@
             if (typeof data is 'string' or typeof data is 'number' or typeof data is 'boolean')
                 # String
                 # for new fields, assume string type
-                if type is 'string' or type is 'none'
-                    if typeof data is 'boolean'
-                        data = if true then 1 else 0
-                    rdb.set key, data, (err) ->
-                        callback err if err
-                else if type is 'set'
-                    rdb.sadd key, data, (err) ->
-                        callback err if err
-                else if type is 'zset'
-                    rdb.zadd key, data, (err) ->
-                        callback err if err
+                switch type
+                    when 'string', 'none'
+                        if typeof data is 'boolean'
+                            data = if true then 1 else 0
+                        rdb.set key, data, (err) ->
+                            callback err if err
+                    when 'set'
+                        rdb.sadd key, data, (err) ->
+                            callback err if err
+                    when 'zset'
+                        rdb.zadd key, data, (err) ->
+                            callback err if err
+
             else if Array.isArray(data)
                 # Lists and sets
                 # for new fields, assume list type
-                if type is 'list' or type is 'none'
-                    rdb.rpush key, data, (err) ->
-                        callback err if err
-                else if type is 'set'
-                    rdb.sadd key, data, (err) ->
-                        callback err if err
-                else if type is 'zset'
-                    rdb.zadd key, data, (err) ->
+                switch type
+                    when 'list', 'none'
+                        rdb.rpush key, data, (err) ->
+                            callback err if err
+                    when 'set'
+                        rdb.sadd key, data, (err) ->
+                            callback err if err
+                    when 'zset'
+                        rdb.zadd key, data, (err) ->
+                            callback err if err
+
             # Hashes
             else if data? and typeof data is 'object' and (type is 'hash' or type is 'none')
                 rdb.hmset key, data, (err) ->
