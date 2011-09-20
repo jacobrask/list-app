@@ -77,7 +77,12 @@
     at 'updateItem': ->
         db.setHashField 'item:' + @item.id, @item.type, @item.value, (err, item) ->
             throw err if err
-    
+ 
+    at 'updateTitle': ->
+        key = 'list:' + list['id'] + ':title'
+        db.set key, @listTitle, (err) ->
+            throw err if err
+   
     at 'insertEmptyItem': ->
         db.insertEmptyItem 'list:' + @listId + ':items', (err, item) ->
             throw err if err
@@ -160,4 +165,15 @@
                     $(liEl).prependTo('.list')
 
         def setTitle: (title) ->
-            $('h1').text(title)
+            $('h1[contenteditable]')
+                .text(title)
+                .data('before', title)
+                .bind 'blur keyup paste', ->
+                    # trigger change event if title has changed from initial value
+                    if $(this).data('before') isnt $(this).text()
+                        $(this)
+                            .data('before', $(this).text())
+                            .trigger('change')
+                        $(this)
+                .change ->
+                    emit 'updateTitle', listTitle: $(this).text()

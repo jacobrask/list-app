@@ -33,9 +33,14 @@
                 else
                     callback err ? new Error "Invalid data type at key"
 
+    # update a single field
+    db.set = (key, value, callback) ->
+        rdb.set key, value, (err) ->
+            callback err, key
+
     # update a single item property
     db.setHashField = (key, field, value, callback) ->
-        rdb.hset key, field, value, (err, data) ->
+        rdb.hset key, field, value, (err) ->
             callback err, key
 
     # increment a counter and return new value
