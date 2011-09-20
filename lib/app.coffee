@@ -127,7 +127,6 @@
             numEl   = $('<input type="number" min="1">')
             textEl  = $('<input type="text">')
             $(liEl).attr('id', 'item-' + item['id'])
-            $(checkEl).add(numEl).add(textEl).data('id', itemId)
             $(checkEl).attr('id', 'checkbox-' + itemId)
             $(checkLabel).attr('for', $(checkEl).attr('id'))
             if item.state is '0'
@@ -135,19 +134,25 @@
                 $(liEl).addClass('checked')
             $(numEl).val(item.number)
             $(textEl).val(item.text)
-            $(checkEl).add(numEl).add(textEl).change ->
-                emit 'updateItem', item: inputToObject($(this))
+            $(checkEl)
+                .add(numEl)
+                .add(textEl)
+                .data('id', itemId)
+                .change ->
+                    emit 'updateItem', item: inputToObject($(this))
             $(checkEl).change ->
-                $(this).parents('li').fadeOut('fast')
-                $(this).parents('li').promise().done(->
-                    if $(this).children('[type=checkbox]').prop('checked')
-                        $(this).addClass('checked')
-                        $(this).appendTo('.list')
-                    else
-                        $(this).removeClass('checked')
-                        $(this).prependTo('.list')
-                    $(this).fadeIn()
-                )
+                $(this).parents('li')
+                    .fadeOut('fast')
+                    .promise().done ->
+                        if $(this).children('[type=checkbox]').prop('checked')
+                            $(this)
+                                .addClass('checked')
+                                .appendTo('.list')
+                        else
+                            $(this)
+                                .removeClass('checked')
+                                .prependTo('.list')
+                        $(this).fadeIn()
 
             $(liEl).append(checkEl, checkLabel, numEl, textEl)
             
