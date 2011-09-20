@@ -26,8 +26,10 @@
             head ->
                 meta charset: 'utf-8'
                 title @title
-                meta name: 'viewport', content: 'width=device-width,initial-scale=1.0'
-                link rel: 'stylesheet', href: 'http://fonts.googleapis.com/css?family=Delius'
+                meta name: 'viewport',
+                     content: 'width=device-width,initial-scale=1.0'
+                link rel: 'stylesheet',
+                     href: 'http://fonts.googleapis.com/css?family=Delius'
                 link rel: 'stylesheet', href: '/style.css'
                 script src: '/socket.io/socket.io.js'
                 script src: '/zappa/jquery.js'
@@ -75,7 +77,8 @@
 
 
     at 'updateItem': ->
-        db.setHashField 'item:' + @item.id, @item.type, @item.value, (err, item) ->
+        db.setHashField 'item:' + @item.id, @item.type, @item.value,
+            (err, item) ->
             throw err if err
  
     at 'updateTitle': ->
@@ -102,7 +105,7 @@
         $ ->
             emit 'domReady'
         
-        # convert an input element to an object suitable for sending server side
+        # convert input element to object
         inputToObject = (el) ->
             obj =
                 type: $(el).attr('type')
@@ -118,23 +121,21 @@
                     obj['value'] = 1
             return obj
  
-        # generate a list item and add all relevant events
+        # generate a list item and add events
         def renderItem: (item) ->
             itemId = item['id']
             liEl    = $('<li/>')
             checkEl = $('<input type="checkbox">')
-            checkLabel = $('<label />')
+            checkLabel = $('<label for="checkbox-' + itemId + '"/>')
             numEl   = $('<input type="number" min="1">')
             textEl  = $('<input type="text">')
-            $(liEl).attr('id', 'item-' + item['id'])
-            $(checkEl).attr('id', 'checkbox-' + itemId)
-            $(checkLabel).attr('for', $(checkEl).attr('id'))
             if item.state is '0'
                 $(checkEl).prop('checked', true)
                 $(liEl).addClass('checked')
             $(numEl).val(item.number)
             $(textEl).val(item.text)
             $(checkEl)
+                .attr('id', 'checkbox-' + itemId)
                 .add(numEl)
                 .add(textEl)
                 .data('id', itemId)
@@ -159,22 +160,28 @@
             # if list is empty, or if item is the first checked item, append
             if $('.list li').length is 0 or (item.state is '0' and $('.list :checked').length is 0)
                 $(liEl).appendTo('.list')
-            # if item is checked, add after last checked item
+            # if item is checked,
+            # add after last checked item
             else if item.state is '0'
                 $('.list :checked').last().parents('li').after($(liEl))
-            # if item is unchecked, add after last unchecked item or first in list
+            # if item is unchecked,
+            # add after last unchecked item or first in list
             else if item.state is '1'
                 if $('.list not(:checked)').length > 0
-                    $('.list not(:checked)').last().parents('li').after($(liEl))
+                    $('.list not(:checked)')
+                        .last()
+                        .parents('li')
+                        .after($(liEl))
                 else
                     $(liEl).prependTo('.list')
 
         def setTitle: (title) ->
             $('h1[contenteditable]')
                 .text(title)
-                .data('before', title)
+                .data('before', title) # set initial value
                 .bind 'blur keyup paste', ->
-                    # trigger change event if title has changed from initial value
+                    # trigger change event if title has changed from previous
+                    # value stored in data
                     if $(this).data('before') isnt $(this).text()
                         $(this)
                             .data('before', $(this).text())
