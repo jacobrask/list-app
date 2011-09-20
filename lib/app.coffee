@@ -77,8 +77,9 @@
 
 
     at 'updateItem': ->
-        db.setHashField 'item:' + @item.id, @item.type, @item.value,
-            (err, item) ->
+        item = {}
+        item[@item.type] = @item.value
+        db.set 'item:' + @item.id, item, (err, item) ->
             throw err if err
  
     at 'updateTitle': ->
@@ -87,7 +88,7 @@
             throw err if err
    
     at 'insertEmptyItem': ->
-        db.insertEmptyItem 'list:' + @listId + ':items', (err, item) ->
+        db.insertEmptyItem 'list:' + @listId + ':items', (err) ->
             throw err if err
 
 
