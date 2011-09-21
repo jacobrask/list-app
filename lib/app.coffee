@@ -117,10 +117,7 @@
                 # checkbox toggles "state"
                 # 1 is open, 0 is done
                 obj['type'] = 'state'
-                if $(el).prop('checked')
-                    obj['value'] = 0
-                else
-                    obj['value'] = 1
+                obj['value'] = if $(el).prop('checked') then 0 else 1
             return obj
  
         # generate a list item and add events
@@ -175,7 +172,8 @@
             $checkedLis = $('.list li.checked')
             $uncheckedLis = $('.list li:not(.checked)')
             # if list is empty, or if item is the first checked item, append
-            if $('.list li').length is 0 or (item.state is '0' and $checkedLis.length is 0)
+            if $('.list li').length is 0 or
+            (item.state is '0' and $checkedLis.length is 0)
                 $liEl.appendTo($list)
             # if item is checked,
             # add after last checked item

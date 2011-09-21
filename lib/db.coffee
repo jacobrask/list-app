@@ -39,7 +39,7 @@
     # update an arbitrary field in database, check for data type
     db.set = (key, data, callback) ->
         rdb.type key, (err, type) ->
-            if (typeof data is 'string' or typeof data is 'number' or typeof data is 'boolean')
+            if typeof data in ['string', 'number', 'boolean']
                 # String
                 # for new fields, assume string type
                 switch type
@@ -70,7 +70,7 @@
                             callback err if err
 
             # Hashes
-            else if data? and typeof data is 'object' and (type is 'hash' or type is 'none')
+            else if data? and typeof data is 'object' and (type in ['hash', 'none'])
                 rdb.hmset key, data, (err) ->
                     callback err
             else
