@@ -21,7 +21,8 @@
     # VIEWS
     view layout: ->
         doctype 5
-        html manifest: 'default.appcache', ->
+        #html manifest: 'default.appcache', ->
+        html ->
             head ->
                 meta charset: 'utf-8'
                 title 'list'
@@ -84,9 +85,12 @@
         db.set key, @listTitle, (err) ->
             throw err if err
    
-    at 'insertEmptyItem': ->
-        db.insertEmptyItem 'list:' + @listId + ':items', (err) ->
+    at 'requestEmptyItem': ->
+        key = 'list:' + list['id'] + ':items'
+        db.insertEmptyItem key, (err, itemId) ->
             throw err if err
+            sendItem itemId, (item) ->
+                emit 'renderItem', item: item
 
 
     # CLIENT SIDE APP LOGIC
@@ -138,7 +142,14 @@
                 .add(textEl)
                 .data('id', itemId)
                 .change ->
+                    $pLi = $(this).parents('li')
+                    # if only list item, or next list item is checked
+                    if ($pLi.is(':last-child') and not $pLi.hasClass('checked')) or
+                    ($pLi.next().hasClass('checked') and not $pLi.hasClass('checked'))
+                        if $(this).is('input[type=text]') or $(this).siblings('input[type=text]').val() isnt ''
+                            emit 'requestEmptyItem'
                     emit 'updateItem', item: inputToObject($(this))
+
             $(checkEl).change ->
                 $(this).parents('li')
                     .fadeOut('fast')
@@ -154,22 +165,21 @@
                         $(this).fadeIn()
 
             $(liEl).append(checkEl, checkLabel, numEl, textEl)
-            
+
+            $checkedLis = $('.list li.checked')
+            $uncheckedLis = $('.list li:not(.checked)')
             # if list is empty, or if item is the first checked item, append
-            if $('.list li').length is 0 or (item.state is '0' and $('.list :checked').length is 0)
+            if $('.list li').length is 0 or (item.state is '0' and $checkedLis.length is 0)
                 $(liEl).appendTo('.list')
             # if item is checked,
             # add after last checked item
             else if item.state is '0'
-                $('.list :checked').last().parents('li').after($(liEl))
+                $checkedLis.last().after($(liEl))
             # if item is unchecked,
             # add after last unchecked item or first in list
             else if item.state is '1'
-                if $('.list not(:checked)').length > 0
-                    $('.list not(:checked)')
-                        .last()
-                        .parents('li')
-                        .after($(liEl))
+                if $uncheckedLis.length > 0
+                    $uncheckedLis.last().after($(liEl))
                 else
                     $(liEl).prependTo('.list')
 
