@@ -126,62 +126,68 @@
         # generate a list item and add events
         def renderItem: (item) ->
             itemId = item['id']
-            liEl    = $('<li/>')
-            checkEl = $('<input type="checkbox">')
-            checkLabel = $('<label for="checkbox-' + itemId + '"/>')
-            numEl   = $('<input type="number" min="1">')
-            textEl  = $('<input type="text">')
+            $list = $('.list')
+            $liEl = $('<li/>')
+            $checkEl = $('<input type="checkbox">')
+            $checkLabel = $('<label for="checkbox-' + itemId + '"/>')
+            $numEl = $('<input type="number" min="1">')
+            $textEl = $('<input type="text">')
             if item.state is '0'
-                $(checkEl).prop('checked', true)
-                $(liEl).addClass('checked')
-            $(numEl).val(item.number)
-            $(textEl).val(item.text)
-            $(checkEl)
+                $checkEl.prop('checked', true)
+                $liEl.addClass('checked')
+            $numEl.val(item.number)
+            $textEl.val(item.text)
+            $checkEl
                 .attr('id', 'checkbox-' + itemId)
-                .add(numEl)
-                .add(textEl)
+                .add($numEl)
+                .add($textEl)
                 .data('id', itemId)
                 .change ->
-                    $pLi = $(this).parents('li')
-                    # if only list item, or next list item is checked
-                    if ($pLi.is(':last-child') and not $pLi.hasClass('checked')) or
-                    ($pLi.next().hasClass('checked') and not $pLi.hasClass('checked'))
-                        if $(this).is('input[type=text]') or $(this).siblings('input[type=text]').val() isnt ''
-                            emit 'requestEmptyItem'
-                    emit 'updateItem', item: inputToObject($(this))
+                    $this = $(@)
+                    $pLi = $this.parents('li')
+                    # request a new empty item if this is the only item,
+                    # next list item is checked, and this item's text is empty
+                    if ($pLi.is(':last-child') or
+                    $pLi.next().hasClass('checked')) and not
+                    $pLi.hasClass('checked') and
+                    (($this.is('input[type=text]') and $this.val() isnt '') or
+                    $this.siblings('input[type=text]').val() isnt '')
+                        emit 'requestEmptyItem'
+                    emit 'updateItem', item: inputToObject($this)
 
-            $(checkEl).change ->
-                $(this).parents('li')
+            $checkEl.change ->
+                $this = $(@)
+                $this.parents('li')
                     .fadeOut('fast')
                     .promise().done ->
-                        if $(this).children('[type=checkbox]').prop('checked')
-                            $(this)
+                        if $this.children('[type=checkbox]').prop('checked')
+                            $this
                                 .addClass('checked')
-                                .appendTo('.list')
+                                .appendTo($list)
                         else
-                            $(this)
+                            $this
                                 .removeClass('checked')
-                                .prependTo('.list')
-                        $(this).fadeIn()
+                                .prependTo($list)
+                        $this.fadeIn()
 
-            $(liEl).append(checkEl, checkLabel, numEl, textEl)
+            $liEl.append($checkEl, $checkLabel, $numEl, $textEl)
 
             $checkedLis = $('.list li.checked')
             $uncheckedLis = $('.list li:not(.checked)')
             # if list is empty, or if item is the first checked item, append
             if $('.list li').length is 0 or (item.state is '0' and $checkedLis.length is 0)
-                $(liEl).appendTo('.list')
+                $liEl.appendTo($list)
             # if item is checked,
             # add after last checked item
             else if item.state is '0'
-                $checkedLis.last().after($(liEl))
+                $checkedLis.last().after($liEl)
             # if item is unchecked,
             # add after last unchecked item or first in list
             else if item.state is '1'
                 if $uncheckedLis.length > 0
-                    $uncheckedLis.last().after($(liEl))
+                    $uncheckedLis.last().after($liEl)
                 else
-                    $(liEl).prependTo('.list')
+                    $liEl.prependTo($list)
 
         def setTitle: (title) ->
             $('title').text(title)
@@ -191,11 +197,13 @@
                 .bind 'blur keyup paste', ->
                     # trigger change event if title has changed from previous
                     # value stored in data
-                    if $(this).data('before') isnt $(this).text()
-                        $(this)
-                            .data('before', $(this).text())
+                    $this = $(@)
+                    if $this.data('before') isnt $this.text()
+                        $this
+                            .data('before', $this.text())
                             .trigger('change')
-                        $(this)
+                        $this
                 .change ->
-                    $('title').text($(this).text())
-                    emit 'updateTitle', listTitle: $(this).text()
+                    $this = $(@)
+                    $('title').text($this.text())
+                    emit 'updateTitle', listTitle: $this.text()
