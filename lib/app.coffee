@@ -22,7 +22,7 @@
     # VIEWS
     view layout: ->
         doctype 5
-        html ->
+        html manifest: 'default.appcache', ->
             head ->
                 meta charset: 'utf-8'
                 title @title
@@ -30,7 +30,8 @@
                      content: 'width=device-width,initial-scale=1.0'
                 link rel: 'stylesheet',
                      href: 'http://fonts.googleapis.com/css?family=Delius'
-                link rel: 'stylesheet', href: '/style.css'
+                link rel: 'stylesheet',
+                     href: '/style.css'
                 script src: '/socket.io/socket.io.js'
                 script src: '/zappa/jquery.js'
                 script src: '/zappa/zappa.js'

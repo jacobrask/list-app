@@ -1,6 +1,8 @@
 CACHE MANIFEST
 # version 1
 /icon.png
-/style.css
-
-FALLBACK:
+/socket.io/socket.io.js
+/zappa/jquery.js
+/zappa/zappa.js
+# /script.js
+# /style.css
