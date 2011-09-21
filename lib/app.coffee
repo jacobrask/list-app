@@ -10,7 +10,6 @@
     # requested a list ID directly
     get /^\/(\d+)/, ->
         list['id'] = params[0]
-        @title = 'list ' + list['id']
         render 'index'
    
     # redirect to next available list id url
@@ -25,7 +24,7 @@
         html manifest: 'default.appcache', ->
             head ->
                 meta charset: 'utf-8'
-                title @title
+                title 'list'
                 meta name: 'viewport',
                      content: 'width=device-width,initial-scale=1.0'
                 link rel: 'stylesheet', href: '/style.css'
@@ -175,6 +174,7 @@
                     $(liEl).prependTo('.list')
 
         def setTitle: (title) ->
+            $('title').text(title)
             $('h1[contenteditable]')
                 .text(title)
                 .data('before', title) # set initial value
@@ -187,4 +187,5 @@
                             .trigger('change')
                         $(this)
                 .change ->
+                    $('title').text($(this).text())
                     emit 'updateTitle', listTitle: $(this).text()
