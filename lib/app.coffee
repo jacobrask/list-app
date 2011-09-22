@@ -157,6 +157,7 @@
                 $this.parents('li')
                     .fadeOut('fast')
                     .promise().done ->
+                        $this = $(@)
                         if $this.children('[type=checkbox]').prop('checked')
                             $this
                                 .addClass('checked')
