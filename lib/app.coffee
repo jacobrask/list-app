@@ -32,14 +32,14 @@
                 script src: '/socket.io/socket.io.js'
                 script src: '/zappa/jquery.js'
                 script src: '/zappa/zappa.js'
+                script src: '/coffeekup.js'
                 script src: '/script.js'
         body ->
             @body
 
     view index: ->
         h1 contenteditable: 'true'
-        ul class: 'list'
-
+        ul class: 'list', ->
 
     # get list item and send to client
     def sendItem: (itemId, callback) ->
@@ -97,7 +97,15 @@
     client '/script.js': ->
 
         connect()
-        
+ 
+        # CoffeeKup
+        listItem = ->
+            li ('class': 'checked' if @item.state is '0'), ->
+                input type: 'checkbox', id: "checkbox-#{@item.id}", 'data-id': @item.id, checked: 'checked' if @item.state is '0'
+                label for: "checkbox-#{@item.id}", 'data-id': @item.id
+                input type: 'number', min: '1', value: @item.number, 'data-id': @item.id
+                input type: 'text', value: @item.text, 'data-id': @item.id
+
         at 'renderItem': ->
             renderItem @item
         
@@ -107,6 +115,8 @@
         $ ->
             emit 'domReady'
         
+        $list = $('.list')
+
         # convert input element to object
         inputToObject = (el) ->
             obj =
@@ -119,74 +129,57 @@
                 obj['type'] = 'state'
                 obj['value'] = if $(el).prop('checked') then 0 else 1
             return obj
- 
-        # generate a list item and add events
+
+        # Send update event to server
+        $('.list input').live 'change', ->
+            $input = $(@)
+            $pLi = $input.parents('li')
+            # request a new empty item if this is the only item,
+            # next list item is checked, and this item's text is empty
+            if ($pLi.is(':last-child') or
+            $pLi.next().hasClass('checked')) and not
+            $pLi.hasClass('checked') and
+            (($input.is('input[type=text]') and $input.val() isnt '') or
+            $input.siblings('input[type=text]').val() isnt '')
+                emit 'requestEmptyItem'
+            emit 'updateItem', item: inputToObject($input)
+         
+         # Move the element when state is toggled
+         $('.list input[type=checkbox]').live 'change', ->
+            $checkbox = $(@)
+            $checkbox.parents('li')
+                .fadeOut('fast')
+                .promise().done ->
+                    $li = $(@)
+                    if $checkbox.prop('checked')
+                        $li.addClass('checked').appendTo($list)
+                    else
+                        $li.removeClass('checked').prependTo($list)
+                    $li.fadeIn()
+
+        # Render and add an item to the right position in list
         def renderItem: (item) ->
-            itemId = item['id']
             $list = $('.list')
-            $liEl = $('<li/>')
-            $checkEl = $('<input type="checkbox">')
-            $checkLabel = $('<label for="checkbox-' + itemId + '"/>')
-            $numEl = $('<input type="number" min="1">')
-            $textEl = $('<input type="text">')
-            if item.state is '0'
-                $checkEl.prop('checked', true)
-                $liEl.addClass('checked')
-            $numEl.val(item.number)
-            $textEl.val(item.text)
-            $checkEl
-                .attr('id', 'checkbox-' + itemId)
-                .add($numEl)
-                .add($textEl)
-                .data('id', itemId)
-                .change ->
-                    $this = $(@)
-                    $pLi = $this.parents('li')
-                    # request a new empty item if this is the only item,
-                    # next list item is checked, and this item's text is empty
-                    if ($pLi.is(':last-child') or
-                    $pLi.next().hasClass('checked')) and not
-                    $pLi.hasClass('checked') and
-                    (($this.is('input[type=text]') and $this.val() isnt '') or
-                    $this.siblings('input[type=text]').val() isnt '')
-                        emit 'requestEmptyItem'
-                    emit 'updateItem', item: inputToObject($this)
-
-            $checkEl.change ->
-                $this = $(@)
-                $this.parents('li')
-                    .fadeOut('fast')
-                    .promise().done ->
-                        $this = $(@)
-                        if $this.children('[type=checkbox]').prop('checked')
-                            $this
-                                .addClass('checked')
-                                .appendTo($list)
-                        else
-                            $this
-                                .removeClass('checked')
-                                .prependTo($list)
-                        $this.fadeIn()
-
-            $liEl.append($checkEl, $checkLabel, $numEl, $textEl)
+            ck_li = CoffeeKup.render(listItem, item: item)
+            $ck_li = $(ck_li)
 
             $checkedLis = $('.list li.checked')
             $uncheckedLis = $('.list li:not(.checked)')
             # if list is empty, or if item is the first checked item, append
             if $('.list li').length is 0 or
             (item.state is '0' and $checkedLis.length is 0)
-                $liEl.appendTo($list)
+                $list.append($ck_li)
             # if item is checked,
             # add after last checked item
             else if item.state is '0'
-                $checkedLis.last().after($liEl)
+                $checkedLis.last().after($ck_li)
             # if item is unchecked,
             # add after last unchecked item or first in list
             else if item.state is '1'
                 if $uncheckedLis.length > 0
-                    $uncheckedLis.last().after($liEl)
+                    $uncheckedLis.last().after($ck_li)
                 else
-                    $liEl.prependTo($list)
+                    $list.prepend($ck_li)
 
         def setTitle: (title) ->
             $('title').text(title)
