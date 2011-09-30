@@ -6,13 +6,13 @@
     list = []
 
     # requested a list ID directly
-    z.get /^\/(\d+)/, ->
-        list['id'] = params[0]
+    z.get /^\/(\d+)/, (z) ->
+        list['id'] = z.params[0]
         z.render 'index'
    
     # redirect to next available list id url
-    z.get '/': ->
-        db.nextId 'list:next', (err, nextListId) ->
+    z.get '/': (z) ->
+        db.nextId 'list:next', (err, nextListId) =>
             throw err if err
             z.redirect '/' + nextListId
 
@@ -47,7 +47,7 @@
             item['id'] = itemId
             callback item
 
-    z.on 'domReady': ->
+    z.on 'domReady': (z) ->
         # send all current items to client
         baseKey = 'list:' + list['id']
         db.forEach baseKey + ':items',
@@ -92,9 +92,9 @@
 
 
     # CLIENT SIDE APP LOGIC
-    z.client '/script.js': ->
+    z.client '/script.js': (z) ->
 
-        connect()
+        z.connect()
  
         # CoffeeKup
         listItem = ->
@@ -105,14 +105,13 @@
                 input type: 'text', value: @item.text, 'data-id': @item.id
 
         z.on 'renderItem': ->
-            renderItem @item
+            renderItem @data.item
         
         z.on 'sendTitle': ->
-            setTitle @listTitle
+            setTitle @data.listTitle
 
         $ ->
             z.emit 'domReady'
-        
         $list = $('.list')
 
         # convert input element to object
