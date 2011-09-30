@@ -1,6 +1,6 @@
 port = Number(process.env.PORT || 3000)
-require('zappa') port, ->
-    enable 'serve jquery'
-    use 'static'
+require('zappa') port, (z) ->
+    z.enable 'serve jquery'
+    z.use 'static'
    
-    include 'lib/app'
+    z.include 'lib/app'

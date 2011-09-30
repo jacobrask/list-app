@@ -1,25 +1,23 @@
-@include = ->
+@include = (z) ->
     
-    include 'lib/db'
+    z.include 'lib/db'
     db = @db
-    def { db }
 
     list = []
-    def { list }
 
     # requested a list ID directly
-    get /^\/(\d+)/, ->
+    z.get /^\/(\d+)/, ->
         list['id'] = params[0]
-        render 'index'
+        z.render 'index'
    
     # redirect to next available list id url
-    get '/': ->
+    z.get '/': ->
         db.nextId 'list:next', (err, nextListId) ->
             throw err if err
-            redirect '/' + nextListId
+            z.redirect '/' + nextListId
 
     # VIEWS
-    view layout: ->
+    z.view layout: ->
         doctype 5
         #html manifest: 'default.appcache', ->
         html ->
@@ -37,64 +35,64 @@
         body ->
             @body
 
-    view index: ->
+    z.view index: ->
         h1 contenteditable: 'true'
         ul class: 'list', ->
 
     # get list item and send to client
-    def sendItem: (itemId, callback) ->
+    sendItem = (itemId, callback) ->
         itemKey = 'item:' + itemId
         db.forEach itemKey, (err, item) ->
             throw err if err
             item['id'] = itemId
             callback item
 
-    at 'domReady': ->
+    z.on 'domReady': ->
         # send all current items to client
         baseKey = 'list:' + list['id']
         db.forEach baseKey + ':items',
             (err, itemId) ->
                 throw err if err
                 sendItem itemId, (item) ->
-                    emit 'renderItem', item: item
+                    z.emit 'renderItem', item: item
             (err, key) ->
                 throw err if err
                 db.insertEmptyItem key, (err, itemId) ->
                     throw err if err
                     sendItem itemId, (item) ->
-                        emit 'renderItem', item: item
+                        z.emit 'renderItem', item: item
 
         # send list title
         db.forEach baseKey + ':title',
             (err, listTitle) ->
                 throw err if err
-                emit 'sendTitle', listTitle: listTitle
+                z.emit 'sendTitle', listTitle: listTitle
             (err, key) ->
                 throw err if err
-                emit 'sendTitle', listTitle: 'untitled list'
+                z.emit 'sendTitle', listTitle: 'untitled list'
 
 
-    at 'updateItem': ->
+    z.on 'updateItem': ->
         item = {}
         item[@item.type] = @item.value
         db.set 'item:' + @item.id, item, (err, item) ->
             throw err if err
  
-    at 'updateTitle': ->
+    z.on 'updateTitle': ->
         key = 'list:' + list['id'] + ':title'
         db.set key, @listTitle, (err) ->
             throw err if err
    
-    at 'requestEmptyItem': ->
+    z.on 'requestEmptyItem': ->
         key = 'list:' + list['id'] + ':items'
         db.insertEmptyItem key, (err, itemId) ->
             throw err if err
             sendItem itemId, (item) ->
-                emit 'renderItem', item: item
+                z.emit 'renderItem', item: item
 
 
     # CLIENT SIDE APP LOGIC
-    client '/script.js': ->
+    z.client '/script.js': ->
 
         connect()
  
@@ -106,14 +104,14 @@
                 input type: 'number', min: '1', value: @item.number, 'data-id': @item.id
                 input type: 'text', value: @item.text, 'data-id': @item.id
 
-        at 'renderItem': ->
+        z.on 'renderItem': ->
             renderItem @item
         
-        at 'sendTitle': ->
+        z.on 'sendTitle': ->
             setTitle @listTitle
 
         $ ->
-            emit 'domReady'
+            z.emit 'domReady'
         
         $list = $('.list')
 
@@ -141,8 +139,8 @@
             $pLi.hasClass('checked') and
             (($input.is('input[type=text]') and $input.val() isnt '') or
             $input.siblings('input[type=text]').val() isnt '')
-                emit 'requestEmptyItem'
-            emit 'updateItem', item: inputToObject($input)
+                z.emit 'requestEmptyItem'
+            z.emit 'updateItem', item: inputToObject($input)
          
          # Move the element when state is toggled
          $('.list input[type=checkbox]').live 'change', ->
@@ -158,7 +156,7 @@
                     $li.fadeIn()
 
         # Render and add an item to the right position in list
-        def renderItem: (item) ->
+        renderItem = (item) ->
             $list = $('.list')
             ck_li = CoffeeKup.render(listItem, item: item)
             $ck_li = $(ck_li)
@@ -181,7 +179,7 @@
                 else
                     $list.prepend($ck_li)
 
-        def setTitle: (title) ->
+        setTitle = (title) ->
             $('title').text(title)
             $('h1[contenteditable]')
                 .text(title)
@@ -198,4 +196,4 @@
                 .change ->
                     $this = $(@)
                     $('title').text($this.text())
-                    emit 'updateTitle', listTitle: $this.text()
+                    z.emit 'updateTitle', listTitle: $this.text()

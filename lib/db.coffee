@@ -12,7 +12,6 @@
         console.log 'Redis connection error: ', err
     
     db = {}
-    @db = db
     
     # iterate through something in the database
     db.forEach = (key, callback, fallback) ->
