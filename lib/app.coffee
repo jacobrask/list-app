@@ -38,6 +38,8 @@
     z.view index: ->
         h1 contenteditable: 'true'
         ul class: 'list', ->
+        form ->
+            button id: 'clear', "Clear"
 
     # get list item and send to client
     sendItem = (itemId, callback) ->
@@ -103,6 +105,13 @@
                 label for: "checkbox-#{@item.id}", 'data-id': @item.id
                 input type: 'number', min: '1', value: @item.number, 'data-id': @item.id
                 input type: 'text', value: @item.text, 'data-id': @item.id
+
+        clearForm = ->
+            div class: 'overlay'
+            div class: 'msg', ->
+                h2 'Clear list'
+                button 'All items'
+                button 'Checked items'
 
         z.on 'renderItem': ->
             renderItem @item
@@ -196,3 +205,9 @@
                     $this = $(@)
                     $('title').text($this.text())
                     z.emit 'updateTitle', listTitle: $this.text()
+
+        $('#clear').live 'click', (ev) ->
+            ev.preventDefault()
+            ck_cf = CoffeeKup.render(clearForm)
+            $ck_cf = $(ck_cf)
+            $('body').append($ck_cf)
