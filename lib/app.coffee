@@ -105,10 +105,10 @@
                 input type: 'text', value: @item.text, 'data-id': @item.id
 
         z.on 'renderItem': ->
-            renderItem @data.item
+            renderItem @item
         
         z.on 'sendTitle': ->
-            setTitle @data.listTitle
+            setTitle @listTitle
 
         $ ->
             z.emit 'domReady'
