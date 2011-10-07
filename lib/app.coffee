@@ -72,18 +72,18 @@
                 z.emit 'sendTitle', listTitle: 'untitled list'
 
 
-    z.on 'updateItem': ->
+    z.on 'updateItem': (z) ->
         item = {}
         item[@item.type] = @item.value
         db.set 'item:' + @item.id, item, (err, item) ->
             throw err if err
  
-    z.on 'updateTitle': ->
+    z.on 'updateTitle': (z) ->
         key = 'list:' + list['id'] + ':title'
         db.set key, @listTitle, (err) ->
             throw err if err
    
-    z.on 'requestEmptyItem': ->
+    z.on 'requestEmptyItem': (z) ->
         key = 'list:' + list['id'] + ':items'
         db.insertEmptyItem key, (err, itemId) ->
             throw err if err
