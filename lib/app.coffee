@@ -38,8 +38,9 @@
     z.view index: ->
         h1 contenteditable: 'true'
         ul class: 'list', ->
-        form ->
+        form id: 'menu', ->
             button id: 'clear', "Clear"
+            a id: 'new', href: '/', 'New'
 
     # get list item and send to client
     sendItem = (itemId, callback) ->

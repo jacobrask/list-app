@@ -1,13 +1,31 @@
 @import url('http://fonts.googleapis.com/css?family=Delius');
 
 // MIXINS
-@mixin gradient-shadow {
-    background-image: -webkit-gradient(linear, left top, left bottom, from(transparent), to(rgba(0, 0, 0, .2)));
-    background-image: -webkit-linear-gradient(top, transparent, rgba(0, 0, 0, .2));
-    background-image: -moz-linear-gradient(top, transparent, rgba(0, 0, 0, .2));
-    background-image: -o-linear-gradient(top, transparent, rgba(0, 0, 0, .2));
-    background-image: -ms-linear-gradient(top, transparent, rgba(0, 0, 0, .2));
-    background-image: linear-gradient(top, transparent, rgba(0, 0, 0, .2));
+@mixin gradient-shadow($image) {
+    $from_color: transparent;
+    $to_color: rgba(0, 0, 0, .2);
+    $gradient: top, $from_color, $to_color;
+    @if $image == '' {
+        background-image: -webkit-gradient(linear, left top, left bottom, from($from_color), to($to_color));
+        background-image: -webkit-linear-gradient($gradient);
+        background-image: -moz-linear-gradient($gradient);
+        background-image: -o-linear-gradient($gradient);
+        background-image: -ms-linear-gradient($gradient);
+        background-image: linear-gradient($gradient);
+    } @else {
+        background-image: -webkit-gradient(linear, left top, left bottom, from($from_color), to($to_color)),
+                          url($image);
+        background-image: -webkit-linear-gradient($gradient),
+                          url($image);
+        background-image: -moz-linear-gradient($gradient),
+                          url($image);
+        background-image: -o-linear-gradient($gradient),
+                          url($image);
+        background-image: -ms-linear-gradient($gradient),
+                          url($image);
+        background-image: linear-gradient($gradient),
+                          url($image);
+    }
 }
 
 * {
@@ -36,7 +54,6 @@ h1 {
 }
 button {
     padding: 5px 5%;
-    border-radius: 3px;
     &[type=submit] {
         color: #fff;
         text-shadow: none;
@@ -46,9 +63,8 @@ button {
         background: #ccc;
     }
 }
-    
 input {
-    text-shadow: 1px 1px rgba(255, 255, 255, .75);
+    text-shadow: 1px 1px 1px rgba(255, 255, 255, .75);
     background: rgba(255, 255, 255, .75);
     padding: 4px;
     border-radius: 3px;
@@ -65,7 +81,7 @@ input {
 .list {
     li {
         background-color: #ddd;
-        @include gradient-shadow;
+        @include gradient-shadow('');
         border-radius: 5px;
         margin: 10px 0;
         padding: 5px 2%;
@@ -120,6 +136,32 @@ input {
         }
     }
 }
+#menu {
+    a,
+    button {
+        display: inline-block;
+        text-decoration: none;
+        border-radius: 5px;
+        width: 25%;
+        padding: 40px 10px 5px;
+        margin-right: 5%;
+        cursor: pointer;
+        text-align: center;
+        text-transform: uppercase;
+        font-size: 11px;
+        font-weight: bold;
+        color: #333;
+        text-shadow: 1px 1px 1px rgba(255, 255, 255, .75);
+        background-position: 50% 25%;
+        background-repeat: no-repeat;
+        &#clear {
+            @include gradient-shadow('trash.png');
+        }
+        &#new {
+            @include gradient-shadow('new.png');
+        }
+}
+}
 .msg {
     margin: 10px 0;
     padding: 5px 2%;
@@ -138,7 +180,7 @@ input {
         margin: 5px 0;
     }
     button {
-        @include gradient-shadow;
+        @include gradient-shadow('');
         border: 1px solid rgba(0, 0, 0, .3);
         margin: 5px;
         padding: 15px;
