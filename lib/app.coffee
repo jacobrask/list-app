@@ -79,6 +79,7 @@
         key = 'list:' + list['id'] + ':items'
         db.set key, '', (err) ->
             throw err if err
+            z.emit 'reload'
 
     z.on 'updateItem': (z) ->
         item = {}
@@ -112,13 +113,16 @@
                 input type: 'number', min: '1', value: @item.number, 'data-id': @item.id
                 input type: 'text', value: @item.text, 'data-id': @item.id
 
-        clearForm = ->
-            div class: 'overlay'
-            div class: 'msg', ->
-                h2 'Clear list'
-                button id: 'clear-all', 'All items'
-                button id: 'clear-checked', 'Checked items'
+        message = ->
+            article class: 'msg', ->
+                h2 @header
+                for key, value of @buttons
+                    button id: key, value
+                @text
 
+        z.on 'reload': ->
+            location.reload()
+        
         z.on 'renderItem': ->
             renderItem @item
         
@@ -212,14 +216,28 @@
                     $('title').text($this.text())
                     z.emit 'updateTitle', listTitle: $this.text()
 
+        overlayToggle = ->
+            if $('.overlay').length is 0
+                $('<div class="overlay" />')
+                    .hide()
+                    .appendTo('body')
+                    .fadeIn('fast')
+            else
+                $('.overlay').remove()
+
         $('#clear').live 'click', (ev) ->
             ev.preventDefault()
-            ck_cf = CoffeeKup.render(clearForm)
-            $ck_cf = $(ck_cf)
-            $('body').append($ck_cf)
+            clearForm = CoffeeKup.render(message, header: 'Clear list', buttons: { 'clear-all': 'All items', 'clear-checked': 'Checked items' })
+            $clearForm = $(clearForm)
+            overlayToggle()
+            $clearForm
+                .hide()
+                .appendTo('body')
+                .fadeIn()
  
         $('#clear-all').live 'click', (ev) ->
             ev.preventDefault()
-            $('.overlay').fadeOut()
-            $('.msg').fadeOut()
+            clearing = CoffeeKup.render(message, header: 'Clear list', text: 'Clearing list')
+            $('.msg').replaceWith(clearing)
             z.emit 'clearList'
+
