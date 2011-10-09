@@ -40,7 +40,7 @@
     db.set = (key, data, callback) ->
         if data is ''
             rdb.del key, (err) ->
-                callback err if err
+                callback err
         else
             rdb.type key, (err, type) ->
                 if typeof data in ['string', 'number', 'boolean']
@@ -51,13 +51,13 @@
                             if typeof data is 'boolean'
                                 data = if true then 1 else 0
                             rdb.set key, data, (err) ->
-                                callback err if err
+                                callback err
                         when 'set'
                             rdb.sadd key, data, (err) ->
-                                callback err if err
+                                callback err
                         when 'zset'
                             rdb.zadd key, data, (err) ->
-                                callback err if err
+                                callback err
 
                 else if Array.isArray(data)
                     # Lists and sets
@@ -65,13 +65,13 @@
                     switch type
                         when 'list', 'none'
                             rdb.rpush key, data, (err) ->
-                                callback err if err
+                                callback err
                         when 'set'
                             rdb.sadd key, data, (err) ->
-                                callback err if err
+                                callback err
                         when 'zset'
                             rdb.zadd key, data, (err) ->
-                                callback err if err
+                                callback err
 
                 # Hashes
                 else if data? and typeof data is 'object' and (type in ['hash', 'none'])
