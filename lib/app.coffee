@@ -75,6 +75,11 @@
                 z.emit 'sendTitle', listTitle: 'untitled list'
 
 
+    z.on 'clearList': (z) ->
+        key = 'list:' + list['id'] + ':items'
+        db.set key, '', (err) ->
+            throw err if err
+
     z.on 'updateItem': (z) ->
         item = {}
         item[@item.type] = @item.value
@@ -111,8 +116,8 @@
             div class: 'overlay'
             div class: 'msg', ->
                 h2 'Clear list'
-                button 'All items'
-                button 'Checked items'
+                button id: 'clear-all', 'All items'
+                button id: 'clear-checked', 'Checked items'
 
         z.on 'renderItem': ->
             renderItem @item
@@ -212,3 +217,9 @@
             ck_cf = CoffeeKup.render(clearForm)
             $ck_cf = $(ck_cf)
             $('body').append($ck_cf)
+ 
+        $('#clear-all').live 'click', (ev) ->
+            ev.preventDefault()
+            $('.overlay').fadeOut()
+            $('.msg').fadeOut()
+            z.emit 'clearList'

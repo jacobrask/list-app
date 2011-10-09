@@ -38,43 +38,47 @@
 
     # update an arbitrary field in database, check for data type
     db.set = (key, data, callback) ->
-        rdb.type key, (err, type) ->
-            if typeof data in ['string', 'number', 'boolean']
-                # String
-                # for new fields, assume string type
-                switch type
-                    when 'string', 'none'
-                        if typeof data is 'boolean'
-                            data = if true then 1 else 0
-                        rdb.set key, data, (err) ->
-                            callback err if err
-                    when 'set'
-                        rdb.sadd key, data, (err) ->
-                            callback err if err
-                    when 'zset'
-                        rdb.zadd key, data, (err) ->
-                            callback err if err
+        if data is ''
+            rdb.del key, (err) ->
+                callback err if err
+        else
+            rdb.type key, (err, type) ->
+                if typeof data in ['string', 'number', 'boolean']
+                    # String
+                    # for new fields, assume string type
+                    switch type
+                        when 'string', 'none'
+                            if typeof data is 'boolean'
+                                data = if true then 1 else 0
+                            rdb.set key, data, (err) ->
+                                callback err if err
+                        when 'set'
+                            rdb.sadd key, data, (err) ->
+                                callback err if err
+                        when 'zset'
+                            rdb.zadd key, data, (err) ->
+                                callback err if err
 
-            else if Array.isArray(data)
-                # Lists and sets
-                # for new fields, assume list type
-                switch type
-                    when 'list', 'none'
-                        rdb.rpush key, data, (err) ->
-                            callback err if err
-                    when 'set'
-                        rdb.sadd key, data, (err) ->
-                            callback err if err
-                    when 'zset'
-                        rdb.zadd key, data, (err) ->
-                            callback err if err
+                else if Array.isArray(data)
+                    # Lists and sets
+                    # for new fields, assume list type
+                    switch type
+                        when 'list', 'none'
+                            rdb.rpush key, data, (err) ->
+                                callback err if err
+                        when 'set'
+                            rdb.sadd key, data, (err) ->
+                                callback err if err
+                        when 'zset'
+                            rdb.zadd key, data, (err) ->
+                                callback err if err
 
-            # Hashes
-            else if data? and typeof data is 'object' and (type in ['hash', 'none'])
-                rdb.hmset key, data, (err) ->
-                    callback err
-            else
-                callback err ? new Error "Key exists and data types do not match"
+                # Hashes
+                else if data? and typeof data is 'object' and (type in ['hash', 'none'])
+                    rdb.hmset key, data, (err) ->
+                        callback err
+                else
+                    callback err ? new Error "Key exists and data types do not match"
 
 
     # increment a counter and return new value
